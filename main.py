@@ -36,6 +36,23 @@ class speicher_dezentral:
         self.volumenliste = volumenliste_neu
         assert abs(self._gesamtvolumen() - self.totalvolumen_m3 ) < 1e-6
         self._sort()
+    def austauschen(self, temp_rein_C = 70.0, volumen_m3 = 0.010, position_raus_anteil_von_unten = 0.6):
+        assert volumen_m3 >= 0.0
+        assert volumen_m3 < self.teilvolumen_m3 # kann in einem Schritt nicht mehr austauschen als ein Teilvolumen hat
+        assert position_raus_anteil_von_unten >= 0.0 and position_raus_anteil_von_unten <= 1.0
+        index_raus = int(self.teilspeicher_i * (1-position_raus_anteil_von_unten))
+        temperatur_raus_C = self.volumenliste[index_raus][0]
+        self.volumenliste[index_raus] = (temperatur_raus_C, self.volumenliste[index_raus][1] - volumen_m3)
+        self.volumenliste.append((temp_rein_C, volumen_m3))
+        self._equalize()
+        return(temperatur_raus_C)
+    def temperaturprofil(self):
+        temperaturen = []
+        for (temp_C, volumen_m3) in self.volumenliste:
+            temperaturen.append(temp_C)
+        return(temperaturen)
+
+
 
 
 
@@ -45,7 +62,38 @@ speicher1 = speicher_dezentral()
 #speicher1.print()
 #speicher1.volumenliste[4]=(31.1,0.1)
 #speicher1.print()
-speicher1._equalize()
+#speicher1._equalize()
 #speicher1._sort()
-speicher1.print()
+#speicher1.print()
 #print(speicher1.volumenliste[0][1])
+#print(speicher1.austauschen())
+#speicher1.print()
+
+time_min = 0.0
+
+temperaturen = []
+time = []
+for i in range(60):
+    temperaturen.append(speicher1.temperaturprofil())
+    speicher1.austauschen()
+    time_min +=1
+    time.append(time_min)
+#print (temperaturen)
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Data for plotting
+#t = np.arange(0.0, 2.0, 0.01)
+#s = 1 + np.sin(2 * np.pi * t)
+
+fig, ax = plt.subplots()
+#ax.plot(t, s)
+ax.plot(time, temperaturen)
+
+ax.set(xlabel='time (min)', ylabel='Temperature C',
+       title='Temperaturprofil')
+ax.grid()
+
+#fig.savefig("test.png")
+plt.show()
