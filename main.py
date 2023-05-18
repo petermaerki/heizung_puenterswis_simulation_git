@@ -15,12 +15,25 @@ class speicher_dezentral:
         for (temp_C, volumen_m3) in self.volumenliste:
             gesamt_volumen_m3 += volumen_m3
         return(gesamt_volumen_m3)
-    def austauschen(self, temp_rein_C = 70.0, volumen_rein_m3 = 0.010, position_raus_anteil_von_unten = 0.5):
+    def _einfuellen(self, temp_rein_C = 70.0, volumen_rein_m3 = 0.010):
+        volumenliste_neu = []
+        bestehend_eingefuellt = False
+        for (temp_C, volumen_m3) in self.volumenliste:
+            if abs (temp_C - temp_rein_C) < 1E-5 and not bestehend_eingefuellt:
+                volumenliste_neu.append((temp_C, volumen_m3 + volumen_rein_m3))
+                bestehend_eingefuellt = True
+            else:
+                volumenliste_neu.append((temp_C, volumen_m3))
+        if not bestehend_eingefuellt:
+            volumenliste_neu.append((temp_rein_C, volumen_rein_m3))
+            volumenliste_neu.sort(key=lambda a: a[0], reverse = True)
+        self.volumenliste = volumenliste_neu
+
+    def austauschen(self, temp_rein_C = 70.0, volumen_rein_m3 = 0.010, position_raus_anteil_von_unten = 0.8):
         assert volumen_rein_m3 >= 0.0
         assert position_raus_anteil_von_unten >= 0.0 and position_raus_anteil_von_unten <= 1.0
-        self.volumenliste.append((temp_rein_C, volumen_rein_m3))
-        self._sort()
-
+        self._einfuellen(temp_rein_C = temp_rein_C, volumen_rein_m3 = volumen_rein_m3)
+        #self._sort() # braucht es nicht mehr, ist immer sortiert
         raus_bei_volumen_m3 = self.totalvolumen_m3 * (1-position_raus_anteil_von_unten)
         nehmenliste = []
         volumenliste_neu = []
@@ -39,6 +52,7 @@ class speicher_dezentral:
             if volumen_m3 > 1e-5:
                 volumenliste_neu.append((temp_C, volumen_m3))
         temperatur_raus_C = energie / genommen_summe_m3
+        self.volumenliste = volumenliste_neu
         return(temperatur_raus_C)
     def temperaturprofil(self, temperaturen_i = 10):
         temperaturen = []
@@ -66,12 +80,15 @@ speicher1 = speicher_dezentral()
 #speicher1._sort()
 #speicher1.print()
 #print(speicher1.volumenliste[0][1])
-#print(speicher1.austauschen())
-#speicher1.print()
-
-
-
 if False:
+    for i in range(5):
+        print(speicher1.austauschen())
+    speicher1.print()
+
+
+
+
+if True:
     time_min = 0.0
 
     temperaturen = []
@@ -81,7 +98,7 @@ if False:
         speicher1.austauschen()
         time_min +=1
         time.append(time_min)
-    #print (temperaturen)
+    speicher1.print()
 
     import matplotlib.pyplot as plt
     import numpy as np
