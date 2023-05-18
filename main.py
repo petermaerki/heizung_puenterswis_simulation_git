@@ -10,10 +10,14 @@ class speicher_dezentral:
             print (f'Temperatur C: {temp_C:0.1f}, Volumen m^3: {volumen_m3:0.3f}')
     def _sort(self):
         self.volumenliste.sort(key=lambda a: a[0], reverse = True)
-    def _gesamtvolumen(self):
+    def _gesamtvolumen_justieren(self): # wegen rundungsfehlern justieren
         gesamt_volumen_m3 = 0.0
         for (temp_C, volumen_m3) in self.volumenliste:
             gesamt_volumen_m3 += volumen_m3
+        abweichung_m3 = self.totalvolumen_m3 - gesamt_volumen_m3 
+        print(abweichung_m3)
+        assert abs(abweichung_m3) < 1e-5
+        self.volumenliste[0] = (self.volumenliste[0][0], self.volumenliste[0][1] + abweichung_m3)
         return(gesamt_volumen_m3)
     def _einfuellen(self, temp_rein_C = 70.0, volumen_rein_m3 = 0.010):
         volumenliste_neu = []
@@ -53,6 +57,7 @@ class speicher_dezentral:
                 volumenliste_neu.append((temp_C, volumen_m3))
         temperatur_raus_C = energie / genommen_summe_m3
         self.volumenliste = volumenliste_neu
+        self._gesamtvolumen_justieren()
         return(temperatur_raus_C)
     def temperaturprofil(self, temperaturen_i = 10):
         temperaturen = []
