@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+WASSER_WAERMEKAP = 4190 # J / kg / K
+
 class speicher_dezentral:
     def __init__(self, startTempC = 20.0, totalvolumen_m3 = 0.69):
         #self.teilspeicher_i = 10
@@ -94,7 +96,7 @@ class speicher_dezentral:
         return(temperaturen)
 
 
-anfang_nichts_h = 3
+anfang_nichts_h = 5
 rampe_rauf_h = 1
 voll_heizen_h = 2
 rampe_runter_h = 1
@@ -127,33 +129,44 @@ if True:
     time = []
     fernwaerme_hot = []
     fernwaerme_cold = []
+    leistung_in_speicher = []
     time_step_s = 60
     fluss_liter_pro_h = 148.0
     fluss_m3_pro_s = fluss_liter_pro_h / 1000 / 3600
     for time_s in range(0, 12*60*60, time_step_s):
-        temperaturen.append(speicher1.temperaturprofil())
+
         fernwaerme_hot_C = fernwaerme_vorgabe(zeit_s = time_s)
         fernwarme_cold_C = speicher1.austauschen(temp_rein_C = fernwaerme_hot_C, volumen_rein_m3 = fluss_m3_pro_s * time_step_s, position_raus_anteil_von_unten = 0.64)
+        temperaturen.append(speicher1.temperaturprofil())
         fernwaerme_hot.append(fernwaerme_hot_C)
         fernwaerme_cold.append(fernwarme_cold_C)
+        leistung_W = WASSER_WAERMEKAP * (fernwaerme_hot_C-fernwarme_cold_C) * fluss_m3_pro_s * 1000
+        leistung_in_speicher.append(leistung_W)
         time.append(time_s)
     speicher1.print()
 
 
+    if False:
+        # Data for plotting
+        #t = np.arange(0.0, 2.0, 0.01)
+        #s = 1 + np.sin(2 * np.pi * t)
 
-    # Data for plotting
-    #t = np.arange(0.0, 2.0, 0.01)
-    #s = 1 + np.sin(2 * np.pi * t)
+        fig, ax = plt.subplots()
+        #ax.plot(t, s)
+        ax.plot(np.array(time) / 3600, temperaturen, linewidth=1.0, alpha=0.5)
+        ax.plot(np.array(time) / 3600, fernwaerme_hot, linestyle='dashed', linewidth=3, color='red', alpha=0.5, label='fernwaerme_hot')
+        ax.plot(np.array(time) / 3600, fernwaerme_cold, linestyle='dotted', linewidth=3, color='blue', alpha=0.5, label = 'fernwaerme_cold')
+        ax2 = ax.twinx()
+        ax2.plot(np.array(time) / 3600, leistung_in_speicher, linestyle='dotted', linewidth=5, color='orange', alpha=0.5, label = 'leistung')
+        ax.set(xlabel='time (h)', ylabel='Temperature C',
+            title='Temperaturprofil')
+        ax2.set(ylabel='Power W')
+        ax.legend()
+        ax2.legend()
+        ax.grid()
 
-    fig, ax = plt.subplots()
-    #ax.plot(t, s)
-    ax.plot(np.array(time) / 3600, temperaturen, linewidth=1.0, alpha=0.5)
-    ax.plot(np.array(time) / 3600, fernwaerme_hot, linestyle='dashed', linewidth=3, color='red', alpha=0.5, label='fernwaerme_hot')
-    ax.plot(np.array(time) / 3600, fernwaerme_cold, linestyle='dotted', linewidth=3, color='blue', alpha=0.5, label = 'fernwaerme_cold')
-    ax.set(xlabel='time (h)', ylabel='Temperature C',
-        title='Temperaturprofil')
-    ax.legend()
-    ax.grid()
+    if True:
+        
 
     #fig.savefig("test.png")
     plt.show()
