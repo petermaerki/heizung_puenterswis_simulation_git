@@ -1,0 +1,12 @@
+jupyter-events
+jupyter-lsp
+jupyter_client
+jupyter_core
+jupyter_micropython_kernel
+jupyter_server
+jupyter_server_terminals
+jupyterlab
+jupyterlab-pygments
+jupyterlab_server
+matplotlib
+matplotlib-inline
