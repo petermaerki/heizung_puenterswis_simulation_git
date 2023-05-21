@@ -209,12 +209,12 @@ class Simulation:
 
 
 
-
+'''
 stimulus_first = Stimulus()
 simulation_first = Simulation(stimulus_first)
 simulation_first.do_simulation()
 simulation_first.plot()
-
+'''
 
 
 #speicher1 = Speicher_dezentral(startTempC = 40.0)
