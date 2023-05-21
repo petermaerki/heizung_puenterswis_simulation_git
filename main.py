@@ -99,6 +99,11 @@ class Speicher_dezentral:
         self.volumenliste = volumenliste_neu
         self._gesamtvolumen_justieren()
         return(temperatur_raus_C)
+    def temperatur_bei_position(position_raus_anteil_von_unten = 0.5):
+        startvolumen_m3 = position_raus_anteil_von_unten * self.totalvolumen_m3
+        volumenposition_m3 = startvolumen_m3
+        temperaturen_x, volumen_y = self.temperaturprofil_xy()
+        return np.interp(volumenposition_m3, volumen_y, temperaturen_x)
     def energiebezug(self, energie_J = 1.0, volumen_m3 = 0.001, position_raus_anteil_von_unten = 0.5):
         startvolumen_m3 = position_raus_anteil_von_unten * self.totalvolumen_m3
         volumenposition_m3 = startvolumen_m3
@@ -209,8 +214,8 @@ simulation_first.plot()
 '''
 
 
-#speicher1 = Speicher_dezentral(startTempC = 40.0)
-#print (speicher1.volumenliste)
+speicher1 = Speicher_dezentral(startTempC = 40.0)
+print (speicher1.volumenliste)
 #speicher1.print()
 #speicher1.volumenliste[4]=(31.1,0.1)
 #speicher1.print()
@@ -225,9 +230,12 @@ if False:
 #speicher1.print()
 #speicher1.print()
 #print(speicher1._waermeintegral_J())
-#speicher1.austauschen(temp_rein_C = 100.0, volumen_rein_m3 = 0.100, position_raus_anteil_von_unten = 0.5)
+speicher1.austauschen(temp_rein_C = 100.0, volumen_rein_m3 = 0.100, position_raus_anteil_von_unten = 0.5)
 #speicher1.print()
 #print(speicher1._waermeintegral_J())
+for i in range(5):
+    speicher1.warmwasserbezug(energie_J = 1000)
+speicher1.print()
 
 if False:
     temperaturen = []
