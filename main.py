@@ -11,6 +11,19 @@ class speicher_dezentral:
         self.volumenliste = [] #self.teilspeicher_i * [(startTempC, self.teilvolumen_m3)]
         self.volumenliste.append((startTempC, self.totalvolumen_m3))
         self.volumenliste_vorher_debug = []
+    def _waermeintegral_J(self, temperaturgrenze_C = 50, entnahmehoehe_anteil = 0.68):
+        # Ruckzuckloesung: Tank in Schritten zerlegen und jeden Schritt summieren
+        schrittweite = 0.01 # je feiner je genauer, dafuer aufwaendiger
+        volumenschritt_m3 = self.totalvolumen_m3 * schrittweite
+        temperaturen_x, volumen_y = self.temperaturprofil_xy()
+        startvolumen_m3 = entnahmehoehe_anteil * self.totalvolumen_m3
+        volumenposition_m3 = startvolumen_m3
+        energie_J = 0.0
+        while volumenposition_m3 < self.totalvolumen_m3:
+            temperatur_C = np.interp(volumenposition_m3, volumen_y, temperaturen_x)
+            energie_J += max((temperatur_C - temperaturgrenze_C) * volumenschritt_m3 * WASSER_WAERMEKAP, 0.0)
+            volumenposition_m3 += volumenschritt_m3
+        return energie_J
     def print(self):
         for [temp_C, volumen_m3] in self.volumenliste:
             print (f'Temperatur C: {temp_C:0.1f}, Volumen m^3: {volumen_m3:0.6f}')
@@ -94,6 +107,19 @@ class speicher_dezentral:
                 index += 1
         assert len(temperaturen) == temperaturen_i
         return(temperaturen)
+    
+    def temperaturprofil_xy(self):
+        temperatur_C_array = []
+        volumen_m3_array = []
+        volumen_m3_summe = 0.0
+        print(len(self.volumenliste))
+        for (temp_C, volumen_m3) in self.volumenliste[::-1]:
+            temperatur_C_array.append(temp_C)
+            volumen_m3_array.append(volumen_m3_summe)
+            volumen_m3_summe += volumen_m3
+            temperatur_C_array.append(temp_C)
+            volumen_m3_array.append(volumen_m3_summe)
+        return([temperatur_C_array, volumen_m3_array])
 
 
 anfang_nichts_h = 5
@@ -120,11 +146,11 @@ if False:
     for i in range(5):
         print(speicher1.austauschen())
     speicher1.print()
+#speicher1.print()
+print(speicher1._waermeintegral_J())
 
 
-
-
-if True:
+if False:
     temperaturen = []
     time = []
     fernwaerme_hot = []
@@ -133,7 +159,7 @@ if True:
     time_step_s = 60
     fluss_liter_pro_h = 148.0
     fluss_m3_pro_s = fluss_liter_pro_h / 1000 / 3600
-    for time_s in range(0, 12*60*60, time_step_s):
+    for time_s in range(0, 7*60*60, time_step_s):
 
         fernwaerme_hot_C = fernwaerme_vorgabe(zeit_s = time_s)
         fernwarme_cold_C = speicher1.austauschen(temp_rein_C = fernwaerme_hot_C, volumen_rein_m3 = fluss_m3_pro_s * time_step_s, position_raus_anteil_von_unten = 0.64)
@@ -146,7 +172,7 @@ if True:
     speicher1.print()
 
 
-    if False:
+    if False: # Zeitablauf Temperaturen Leistung, gut
         # Data for plotting
         #t = np.arange(0.0, 2.0, 0.01)
         #s = 1 + np.sin(2 * np.pi * t)
@@ -164,9 +190,42 @@ if True:
         ax.legend()
         ax2.legend()
         ax.grid()
+        #fig.savefig("test.png")
+        plt.show()
 
-    if True:
-        
+    if True: 
+        # Data for plotting
+        #t = np.arange(0.0, 2.0, 0.01)
+        #s = 1 + np.sin(2 * np.pi * t)
+        print(speicher1.temperaturprofil_xy())
+        temperaturen_x, volumen_y = speicher1.temperaturprofil_xy()
+        fig, ax = plt.subplots()
+        #ax.plot(t, s)
+        ax.plot(temperaturen_x, volumen_y, linewidth=5.0, color='grey', alpha = 0.8)
+        ax.set(xlabel='Temperatur C', ylabel='Volumen m^3',
+            title='Temperaturprofil')
+        ax.legend()
+        ax.grid()
+        plt.show()
 
-    #fig.savefig("test.png")
-    plt.show()
+
+    if False: # aktualisieren
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        temperaturen_x, volumen_y = speicher1.temperaturprofil_xy()
+        fig, ax = plt.subplots()
+
+        while True:
+            #ax.plot(t, s)
+            ax.plot(temperaturen_x, volumen_y, linewidth=5.0, color='grey', alpha = 0.8)
+            ax.set(xlabel='Temperatur C', ylabel='Volumen m^3',
+                title='Temperaturprofil')
+            ax.legend()
+            ax.grid()
+            plt.show()
+
+
+
+    if False:
+
+        pass
