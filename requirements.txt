@@ -10,3 +10,9 @@ jupyterlab-pygments
 jupyterlab_server
 matplotlib
 matplotlib-inline
+
+### Formatting, static code analysis, unit tests
+black
+mypy
+ruff
+pylint

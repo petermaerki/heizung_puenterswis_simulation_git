@@ -1,0 +1,3 @@
+
+WASSER_WAERMEKAP = 4190  # J / kg / K
+DICHTE_WASSER = 1000  # kg / m^3
