@@ -99,6 +99,18 @@ class Speicher_dezentral:
         self.volumenliste = volumenliste_neu
         self._gesamtvolumen_justieren()
         return(temperatur_raus_C)
+    def energiebezug(self, energie_J = 1.0, volumen_m3 = 0.001, position_raus_anteil_von_unten = 0.5):
+        startvolumen_m3 = position_raus_anteil_von_unten * self.totalvolumen_m3
+        volumenposition_m3 = startvolumen_m3
+        temperaturen_x, volumen_y = self.temperaturprofil_xy()
+        temperatur_raus_C = np.interp(volumenposition_m3, volumen_y, temperaturen_x)
+        temperatur_rein_C = temperatur_raus_C - energie_J / (volumen_m3 * DICHTE_WASSER * WASSER_WAERMEKAP)
+        self.austauschen(temp_rein_C = temperatur_rein_C, volumen_rein_m3 = volumen_m3, position_raus_anteil_von_unten = position_raus_anteil_von_unten)
+        return temperatur_raus_C
+    def warmwasserbezug(self, energie_J = 1.0, volumen_m3 = 0.001):
+        return self.energiebezug(energie_J = energie_J, volumen_m3 = volumen_m3, position_raus_anteil_von_unten = 1.0)
+    def heizungbezug(self, energie_J = 1.0, volumen_m3 = 0.001):
+        return self.energiebezug(energie_J = energie_J, volumen_m3 = volumen_m3, position_raus_anteil_von_unten = 0.68)
     def temperaturprofil(self, temperaturen_i = 10):
         temperaturen = []
         index = 0
@@ -162,10 +174,14 @@ class Simulation:
         fluss_m3_pro_s = fluss_liter_pro_h / 1000 / 3600
         for time_s in range(0, self.duration_s, self.timestep_s):
             self.time_array_s.append(time_s)
-            fernwarme_cold_C = self.speicher1.austauschen(temp_rein_C = self.stimulus.fernwaerme_vorlauf_C(), volumen_rein_m3 = fluss_m3_pro_s * self.timestep_s, position_raus_anteil_von_unten = 0.64)
+            if self.stimulus.fernwaermepumpe_on():
+                fernwarme_cold_C = self.speicher1.austauschen(temp_rein_C = self.stimulus.fernwaerme_vorlauf_C(), volumen_rein_m3 = fluss_m3_pro_s * self.timestep_s, position_raus_anteil_von_unten = 0.0)
             self.temperaturen_C.append(self.speicher1.temperaturprofil())
             self.fernwaerme_hot_C.append(self.stimulus.fernwaerme_vorlauf_C())
+            if fernwarme_cold_C == None:
+                fernwarme_cold_C = 0.0
             self.fernwaerme_cold_C.append(fernwarme_cold_C)
+            self.speicher1.warmwasserbezug()
 
     def plot(self):
         fig, ax = plt.subplots()
@@ -183,11 +199,14 @@ class Simulation:
         ax.grid()
         plt.show()
 
+
+
+'''
 stimulus_first = Stimulus()
 simulation_first = Simulation(stimulus_first)
 simulation_first.do_simulation()
 simulation_first.plot()
-
+'''
 
 
 #speicher1 = Speicher_dezentral(startTempC = 40.0)
