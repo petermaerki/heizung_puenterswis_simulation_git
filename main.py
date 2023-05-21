@@ -2,8 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 WASSER_WAERMEKAP = 4190 # J / kg / K
+DICHTE_WASSER = 1000 # kg / m^3
 
-class speicher_dezentral:
+class Speicher_dezentral:
     def __init__(self, startTempC = 20.0, totalvolumen_m3 = 0.69):
         #self.teilspeicher_i = 10
         self.totalvolumen_m3 = totalvolumen_m3
@@ -11,22 +12,24 @@ class speicher_dezentral:
         self.volumenliste = [] #self.teilspeicher_i * [(startTempC, self.teilvolumen_m3)]
         self.volumenliste.append((startTempC, self.totalvolumen_m3))
         self.volumenliste_vorher_debug = []
-    def _waermeintegral_J(self, temperaturgrenze_C = 50, entnahmehoehe_anteil = 0.68):
+    def _waermeintegral_J(self, temperaturgrenze_C = 39, entnahmehoehe_anteil_von_unten = 0.68):
         # Ruckzuckloesung: Tank in Schritten zerlegen und jeden Schritt summieren
-        schrittweite = 0.01 # je feiner je genauer, dafuer aufwaendiger
+        schrittweite = 0.005 # je feiner je genauer, dafuer aufwaendiger
         volumenschritt_m3 = self.totalvolumen_m3 * schrittweite
         temperaturen_x, volumen_y = self.temperaturprofil_xy()
-        startvolumen_m3 = entnahmehoehe_anteil * self.totalvolumen_m3
+        startvolumen_m3 = entnahmehoehe_anteil_von_unten * self.totalvolumen_m3
         volumenposition_m3 = startvolumen_m3
         energie_J = 0.0
         while volumenposition_m3 < self.totalvolumen_m3:
             temperatur_C = np.interp(volumenposition_m3, volumen_y, temperaturen_x)
-            energie_J += max((temperatur_C - temperaturgrenze_C) * volumenschritt_m3 * WASSER_WAERMEKAP, 0.0)
+            energie_J += max((temperatur_C - temperaturgrenze_C) * volumenschritt_m3 * WASSER_WAERMEKAP * DICHTE_WASSER, 0.0)
             volumenposition_m3 += volumenschritt_m3
+            #print(f'volumenposition_m3 {volumenposition_m3:0.3f}, volumenschritt_m3 {volumenschritt_m3}, temperatur_C {temperatur_C:0.1f}, energie_J {energie_J:0.0f}')
+        #print(f'Waemeintegral temperaturgrenze_C {temperaturgrenze_C} entnahmehoehe_anteil {entnahmehoehe_anteil_von_unten} energie_J {energie_J:0.3f}')
         return energie_J
     def print(self):
         for [temp_C, volumen_m3] in self.volumenliste:
-            print (f'Temperatur C: {temp_C:0.1f}, Volumen m^3: {volumen_m3:0.6f}')
+            print (f'Schichtung vom Speicher: Temperatur C: {temp_C:0.1f}, Volumen m^3: {volumen_m3:0.6f}')
     def _sort(self):
         self.volumenliste.sort(key=lambda a: a[0], reverse = True)
     def _gesamtvolumen_justieren(self): # wegen rundungsfehlern justieren
@@ -112,7 +115,6 @@ class speicher_dezentral:
         temperatur_C_array = []
         volumen_m3_array = []
         volumen_m3_summe = 0.0
-        print(len(self.volumenliste))
         for (temp_C, volumen_m3) in self.volumenliste[::-1]:
             temperatur_C_array.append(temp_C)
             volumen_m3_array.append(volumen_m3_summe)
@@ -132,8 +134,63 @@ def fernwaerme_vorgabe(zeit_s = 0):
     return(np.interp(zeit_s, zeit_s_array, temperatur_C_array))
 
 
+class Stimulus:
+    def __init__(self):
+        self.warmwasserbedarf_haus_W = 255
+        self.heizbedarf_haus_W = 5000
+    def fernwaerme_vorlauf_C(time_s = 0):
+        return 50.0
+    def fernwaermepumpe_on(time_s = 0):
+        return True
+    
+class Simulation:
+    def __init__(self, stimulus):
+        self.duration_s = 24 * 3600
+        self.timestep_s = 60
+        self.stimulus = stimulus
 
-speicher1 = speicher_dezentral(startTempC = 40.0)
+        self.speicher1 = Speicher_dezentral(startTempC = 40.0)
+
+        self.time_array_s = []
+        self.time_steps_s = []
+        self.fernwaerme_hot_C = []
+        self.fernwaerme_cold_C = []
+        self.temperaturen_C = []
+
+    def do_simulation(self):
+        fluss_liter_pro_h = 148.0
+        fluss_m3_pro_s = fluss_liter_pro_h / 1000 / 3600
+        for time_s in range(0, self.duration_s, self.timestep_s):
+            self.time_array_s.append(time_s)
+            fernwarme_cold_C = self.speicher1.austauschen(temp_rein_C = self.stimulus.fernwaerme_vorlauf_C(), volumen_rein_m3 = fluss_m3_pro_s * self.timestep_s, position_raus_anteil_von_unten = 0.64)
+            self.temperaturen_C.append(self.speicher1.temperaturprofil())
+            self.fernwaerme_hot_C.append(self.stimulus.fernwaerme_vorlauf_C())
+            self.fernwaerme_cold_C.append(fernwarme_cold_C)
+
+    def plot(self):
+        fig, ax = plt.subplots()
+        #ax.plot(t, s)
+        ax.plot(np.array(self.time_array_s) / 3600, self.temperaturen_C, linewidth=1.0, alpha=0.5)
+        ax.plot(np.array(self.time_array_s) / 3600, self.fernwaerme_hot_C, linestyle='dashed', linewidth=3, color='red', alpha=0.5, label='fernwaerme_hot')
+        ax.plot(np.array(self.time_array_s) / 3600, self.fernwaerme_cold_C, linestyle='dotted', linewidth=3, color='blue', alpha=0.5, label = 'fernwaerme_cold')
+        #ax2 = ax.twinx()
+        #ax2.plot(np.array(self.time_array_s) / 3600, leistung_in_speicher, linestyle='dotted', linewidth=5, color='orange', alpha=0.5, label = 'leistung')
+        ax.set(xlabel='time (h)', ylabel='Temperature C',
+            title='Temperaturprofil')
+        #ax2.set(ylabel='Power W')
+        ax.legend()
+        #ax2.legend()
+        ax.grid()
+        plt.show()
+
+stimulus_first = Stimulus()
+simulation_first = Simulation(stimulus_first)
+simulation_first.do_simulation()
+simulation_first.plot()
+
+
+
+#speicher1 = Speicher_dezentral(startTempC = 40.0)
 #print (speicher1.volumenliste)
 #speicher1.print()
 #speicher1.volumenliste[4]=(31.1,0.1)
@@ -147,8 +204,11 @@ if False:
         print(speicher1.austauschen())
     speicher1.print()
 #speicher1.print()
-print(speicher1._waermeintegral_J())
-
+#speicher1.print()
+#print(speicher1._waermeintegral_J())
+#speicher1.austauschen(temp_rein_C = 100.0, volumen_rein_m3 = 0.100, position_raus_anteil_von_unten = 0.5)
+#speicher1.print()
+#print(speicher1._waermeintegral_J())
 
 if False:
     temperaturen = []
@@ -159,14 +219,35 @@ if False:
     time_step_s = 60
     fluss_liter_pro_h = 148.0
     fluss_m3_pro_s = fluss_liter_pro_h / 1000 / 3600
-    for time_s in range(0, 7*60*60, time_step_s):
+    for time_s in range(0, 24*60*60, time_step_s):
 
         fernwaerme_hot_C = fernwaerme_vorgabe(zeit_s = time_s)
         fernwarme_cold_C = speicher1.austauschen(temp_rein_C = fernwaerme_hot_C, volumen_rein_m3 = fluss_m3_pro_s * time_step_s, position_raus_anteil_von_unten = 0.64)
         temperaturen.append(speicher1.temperaturprofil())
         fernwaerme_hot.append(fernwaerme_hot_C)
         fernwaerme_cold.append(fernwarme_cold_C)
-        leistung_W = WASSER_WAERMEKAP * (fernwaerme_hot_C-fernwarme_cold_C) * fluss_m3_pro_s * 1000
+        leistung_W = WASSER_WAERMEKAP * DICHTE_WASSER * (fernwaerme_hot_C-fernwarme_cold_C) * fluss_m3_pro_s
+        leistung_in_speicher.append(leistung_W)
+        time.append(time_s)
+    speicher1.print()
+
+if False: 
+    temperaturen = []
+    time = []
+    fernwaerme_hot = []
+    fernwaerme_cold = []
+    leistung_in_speicher = []
+    time_step_s = 60
+    fluss_liter_pro_h = 148.0
+    fluss_m3_pro_s = fluss_liter_pro_h / 1000 / 3600
+    for time_s in range(0, 24*60*60, time_step_s):
+
+        fernwaerme_hot_C = fernwaerme_vorgabe(zeit_s = time_s)
+        fernwarme_cold_C = speicher1.austauschen(temp_rein_C = fernwaerme_hot_C, volumen_rein_m3 = fluss_m3_pro_s * time_step_s, position_raus_anteil_von_unten = 0.64)
+        temperaturen.append(speicher1.temperaturprofil())
+        fernwaerme_hot.append(fernwaerme_hot_C)
+        fernwaerme_cold.append(fernwarme_cold_C)
+        leistung_W = WASSER_WAERMEKAP * DICHTE_WASSER * (fernwaerme_hot_C-fernwarme_cold_C) * fluss_m3_pro_s
         leistung_in_speicher.append(leistung_W)
         time.append(time_s)
     speicher1.print()
