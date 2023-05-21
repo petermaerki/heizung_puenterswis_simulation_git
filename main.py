@@ -99,23 +99,26 @@ class Speicher_dezentral:
         self.volumenliste = volumenliste_neu
         self._gesamtvolumen_justieren()
         return(temperatur_raus_C)
-    def temperatur_bei_position(position_raus_anteil_von_unten = 0.5):
+    def temperatur_bei_position(self, position_raus_anteil_von_unten = 0.5):
         startvolumen_m3 = position_raus_anteil_von_unten * self.totalvolumen_m3
         volumenposition_m3 = startvolumen_m3
         temperaturen_x, volumen_y = self.temperaturprofil_xy()
-        return np.interp(volumenposition_m3, volumen_y, temperaturen_x)
+        return(np.interp(volumenposition_m3, volumen_y, temperaturen_x))
     def energiebezug(self, energie_J = 1.0, volumen_m3 = 0.001, position_raus_anteil_von_unten = 0.5):
-        startvolumen_m3 = position_raus_anteil_von_unten * self.totalvolumen_m3
-        volumenposition_m3 = startvolumen_m3
-        temperaturen_x, volumen_y = self.temperaturprofil_xy()
-        temperatur_raus_C = np.interp(volumenposition_m3, volumen_y, temperaturen_x)
+        temperatur_raus_C = self.temperatur_bei_position(position_raus_anteil_von_unten)
         temperatur_rein_C = temperatur_raus_C - energie_J / (volumen_m3 * DICHTE_WASSER * WASSER_WAERMEKAP)
         self.austauschen(temp_rein_C = temperatur_rein_C, volumen_rein_m3 = volumen_m3, position_raus_anteil_von_unten = position_raus_anteil_von_unten)
         return temperatur_raus_C
-    def warmwasserbezug(self, energie_J = 1.0, volumen_m3 = 0.001):
-        return self.energiebezug(energie_J = energie_J, volumen_m3 = volumen_m3, position_raus_anteil_von_unten = 1.0)
+    def warmwasserbezug(self, energie_J = 1.0):
+        warmwassertemperatur_C = self.temperatur_bei_position(position_raus_anteil_von_unten = 1.0)
+        kaltwasser_C = 15.0
+        (temperaturhub_C) = warmwassertemperatur_C - kaltwasser_C
+        assert(temperaturhub_C >= 0.0)
+        volumen_m3 = energie_J / ( temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER)
+        self.austauschen(temp_rein_C=kaltwasser_C, position_raus_anteil_von_unten=1.0, volumen_rein_m3=volumen_m3)
+        return warmwassertemperatur_C, volumen_m3
     def heizungbezug(self, energie_J = 1.0, volumen_m3 = 0.001):
-        return self.energiebezug(energie_J = energie_J, volumen_m3 = volumen_m3, position_raus_anteil_von_unten = 0.68)
+        return (self.energiebezug(energie_J = energie_J, volumen_m3 = volumen_m3, position_raus_anteil_von_unten = 0.68))
     def temperaturprofil(self, temperaturen_i = 10):
         temperaturen = []
         index = 0
@@ -206,16 +209,16 @@ class Simulation:
 
 
 
-'''
+
 stimulus_first = Stimulus()
 simulation_first = Simulation(stimulus_first)
 simulation_first.do_simulation()
 simulation_first.plot()
-'''
 
 
-speicher1 = Speicher_dezentral(startTempC = 40.0)
-print (speicher1.volumenliste)
+
+#speicher1 = Speicher_dezentral(startTempC = 40.0)
+#print (speicher1.volumenliste)
 #speicher1.print()
 #speicher1.volumenliste[4]=(31.1,0.1)
 #speicher1.print()
@@ -230,12 +233,14 @@ if False:
 #speicher1.print()
 #speicher1.print()
 #print(speicher1._waermeintegral_J())
-speicher1.austauschen(temp_rein_C = 100.0, volumen_rein_m3 = 0.100, position_raus_anteil_von_unten = 0.5)
+#speicher1.austauschen(temp_rein_C = 100.0, volumen_rein_m3 = 0.100, position_raus_anteil_von_unten = 0.5)
 #speicher1.print()
 #print(speicher1._waermeintegral_J())
-for i in range(5):
-    speicher1.warmwasserbezug(energie_J = 1000)
-speicher1.print()
+#speicher1.warmwasserbezug(energie_J = 10000)
+#for i in range(10):
+#    print(f'heizungsbezug temperatur  C bezogen {speicher1.heizungbezug(energie_J = 10000)}')
+#speicher1.heizungbezug(energie_J = 10000)
+#speicher1.print()
 
 if False:
     temperaturen = []
