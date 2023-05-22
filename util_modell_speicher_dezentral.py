@@ -13,6 +13,8 @@ class PlotSpeicher:
         self.fernwaerme_hot_C = []
         self.fernwaerme_cold_C = []
         self.temperaturen_C = []
+        self.energie_verfuegbar_brauchwasser_kWh = []
+        self.energie_verfuegbar_heizung_kWh = []
 
     def append_plot(
         self,
@@ -23,8 +25,21 @@ class PlotSpeicher:
         self.temperaturen_C.append(self.speicher.temperaturprofil())
         self.fernwaerme_hot_C.append(self.speicher.fernwaerme_hot_C)
         self.fernwaerme_cold_C.append(self.speicher.fernwaerme_cold_C)
+        self.energie_verfuegbar_brauchwasser_kWh.append(
+            self.speicher._waermeintegral_J(
+                temperaturgrenze_C=50, entnahmehoehe_anteil_von_unten=1.0
+            )
+            / (3600 * 1000)
+        )
+        self.energie_verfuegbar_heizung_kWh.append(
+            self.speicher._waermeintegral_J(
+                temperaturgrenze_C=35, entnahmehoehe_anteil_von_unten=0.68
+            )
+            / (3600 * 1000)
+        )
 
     def plot(self):
+        # plt.rcParams["figure.figsize"] = (20, 10)
         fig, ax = plt.subplots()
         # ax.plot(t, s)
         ax.plot(
@@ -38,7 +53,7 @@ class PlotSpeicher:
             self.fernwaerme_hot_C,
             linestyle="dashed",
             linewidth=3,
-            color="red",
+            color="orange",
             alpha=0.5,
             label="fernwaerme_hot",
         )
@@ -47,16 +62,33 @@ class PlotSpeicher:
             self.fernwaerme_cold_C,
             linestyle="dotted",
             linewidth=3,
-            color="blue",
+            color="green",
             alpha=0.5,
             label="fernwaerme_cold",
         )
-        # ax2 = ax.twinx()
-        # ax2.plot(np.array(self.time_array_s) / 3600, leistung_in_speicher, linestyle='dotted', linewidth=5, color='orange', alpha=0.5, label = 'leistung')
+        ax2 = ax.twinx()
+        ax2.plot(
+            np.array(self.time_array_s) / 3600,
+            self.energie_verfuegbar_brauchwasser_kWh,
+            linestyle="dashdot",
+            linewidth=2,
+            color="blue",
+            alpha=0.5,
+            label="Brauchwasser verfuegbar",
+        )
+        ax2.plot(
+            np.array(self.time_array_s) / 3600,
+            self.energie_verfuegbar_heizung_kWh,
+            linestyle="dashdot",
+            linewidth=2,
+            color="red",
+            alpha=0.5,
+            label="Heizung verfuegbar",
+        )
         ax.set(xlabel="time (h)", ylabel="Temperature C", title=self.speicher.label)
-        # ax2.set(ylabel='Power W')
+        ax2.set(ylabel="Energie kWh")
         ax.legend()
-        # ax2.legend()
+        ax2.legend()
         ax.grid()
         plt.show()
 
