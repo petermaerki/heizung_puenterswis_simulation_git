@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
 
 
 class Modell:
-    def __init__(self):
+    def __init__(self, stimuli: "StimuliWintertag"):
         self.speichers: typing.List[
             Speicher_dezentral
         ] = (  # Werte gemaess Revisionsplan 1. Etappe 2008-08-20
@@ -77,34 +77,20 @@ class Modell:
                 label="Haus 15",
             ),
         )
-        self.zentralheizung = Zentralheizung()
-        self.heizen = False
-        self.umgebungstemperatur_C = 15.0
-        self.heizkurve_heizungswasser_C = 20.0
+        self.zentralheizung = Zentralheizung(stimuli=stimuli)
 
-    def run(self, timestep_s: float, time_s: float, stimulus: "Stimulus"):
-        self.heizen = (
-            self.umgebungstemperatur_C <= 20.0
-        )  # gemaess Heizkurve VC Engineering
-        self.heizkurve_heizungswasser_C = (
-            20.0 - self.umgebungstemperatur_C
-        ) * 10.0 / 28.0 + 25.0  # gemaess Heizkurve VC Engineering
-        self.heizkurve_heizungswasser_C = min(
-            self.heizkurve_heizungswasser_C, 35.0
-        )  # gemaess Heizkurve VC Engineering
+    def run(self, timestep_s: float, time_s: float):
         for speicher in self.speichers:
             speicher.update_input(self.zentralheizung)
         for speicher in self.speichers:
             speicher.run(
                 timestep_s=timestep_s,
                 time_s=time_s,
-                stimulus=stimulus,
                 modell=self,
             )
         self.zentralheizung.update_input(self.speichers)
         self.zentralheizung.run(
             timestep_s=timestep_s,
             time_s=time_s,
-            stimulus=stimulus,
             modell=self,
         )

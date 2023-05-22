@@ -1,8 +1,13 @@
+import typing
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 from util_konstanten import DICHTE_WASSER, WASSER_WAERMEKAP
-from util_modell_zentralheizung import Zentralheizung
+
+if typing.TYPE_CHECKING:
+    from util_modell import Modell
+    from util_modell_zentralheizung import Zentralheizung
 
 
 class PlotSpeicher:
@@ -300,10 +305,8 @@ class Speicher_dezentral:
             volumen_m3_array.append(volumen_m3_summe)
         return [temperatur_C_array, volumen_m3_array]
 
-    def run(
-        self, timestep_s: float, time_s: float, stimulus: "Stimulus", modell: "Modell"
-    ):
-        if stimulus.fernwaermepumpe_on():
+    def run(self, timestep_s: float, time_s: float, modell: "Modell"):
+        if modell.zentralheizung.fernwaermepumpe_on:
             self.fernwaerme_cold_C = self.austauschen(
                 temp_rein_C=self.fernwaerme_hot_C,
                 volumen_rein_m3=self.fernwaermefluss_m3_pro_s * timestep_s,
@@ -311,5 +314,5 @@ class Speicher_dezentral:
             )
         self.warmwasserbezug()
 
-    def update_input(self, zentralheizung: Zentralheizung):
+    def update_input(self, zentralheizung: "Zentralheizung"):
         self.fernwaerme_hot_C = zentralheizung.fernwaerme_hot_C

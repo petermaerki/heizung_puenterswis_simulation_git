@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from util_konstanten import DICHTE_WASSER, WASSER_WAERMEKAP
+from util_stimuly import StimuliWintertag
 
 if typing.TYPE_CHECKING:
     from util_modell import Modell
@@ -71,18 +72,38 @@ class PlotZentralheizung:
 
 
 class Zentralheizung:
-    def __init__(self):
+    def __init__(
+        self,
+        stimuli: "StimuliWintertag",
+    ):
         # self.fernwaerme_cold_C = []
         # self.fernwaermefluss_m3_pro_s = []
         # self.fernwaermefluss_leistung_W = 0.0
         # self.fernwaerme_cold_mischtemperatur_C = 0.0
+        self.stimuli = stimuli
         self.fernwaerme_totalfluss_m3_pro_s = 0.0
         self.fernwaerme_hot_C = 40.0
         self.fernwaerme_leistung_W = 0.0
         self.fernwaerme_cold_avg_C = 0.0
+        self.heizen = False
+        self.heizkurve_heizungswasser_C = 20.0
+        self.fernwaermepumpe_on = True
+
+    def _update_heizkurve(self):
+        self.heizen = (
+            self.stimuli.umgebungstemperatur_C <= 20.0
+        )  # gemaess Heizkurve VC Engineering
+        self.heizkurve_heizungswasser_C = (
+            20.0 - self.stimuli.umgebungstemperatur_C
+        ) * 10.0 / 28.0 + 25.0  # gemaess Heizkurve VC Engineering
+        self.heizkurve_heizungswasser_C = min(
+            self.heizkurve_heizungswasser_C, 35.0
+        )  # gemaess Heizkurve VC Engineering
 
     def update_input(self, speichers: typing.List["Speicher_dezentral"]):
         # self.fernwaerme_cold_C = []
+        self._update_heizkurve()
+
         mischsumme = 0.0
         self.fernwaerme_totalfluss_m3_pro_s = 0.0
         for speicher in speichers:
@@ -103,9 +124,10 @@ class Zentralheizung:
 
     # return sum(self.fernwaerme_cold_C) / len(self.fernwaerme_cold_C)
 
-    def run(
-        self, timestep_s: float, time_s: float, stimulus: "Stimulus", modell: "Modell"
-    ):
+    def run(self, timestep_s: float, time_s: float, modell: "Modell"):
         # self.fernwaerme_hot_C = self.fernwaerme_cold_avg_C + 0.5
         erhoehung_waermeverluste_C = 5.0
-        self.fernwaerme_hot_C = modell.heizkurve_heizungswasser_C
+        self.fernwaerme_hot_C = (
+            modell.zentralheizung.heizkurve_heizungswasser_C
+            + erhoehung_waermeverluste_C
+        )

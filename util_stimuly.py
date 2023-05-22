@@ -1,6 +1,6 @@
-class StimuliNormaltag:
+class StimuliWintertag:
     def __init__(self):
-        pass
+        self.umgebungstemperatur_C = 15.0
 
     def iterator(self):
         pass
