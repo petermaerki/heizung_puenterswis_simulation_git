@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
 
 class Modell:
     def __init__(self, stimuli: "StimuliWintertag"):
+        self.stimuli = stimuli
         self.speichers: typing.List[
             Speicher_dezentral
         ] = (  # Werte gemaess Revisionsplan 1. Etappe 2008-08-20

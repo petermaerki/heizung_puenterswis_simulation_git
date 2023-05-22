@@ -10,23 +10,23 @@ from util_stimuly import StimuliWintertag
 
 class Simulation:
     def __init__(self, stimuli: "StimuliWintertag"):
-        self.duration_s = 24 * 3600
-        self.timestep_s = 60
         self.plots = []
 
         self.modell = Modell(stimuli)
 
-    def run(self, plot=True):
-        fluss_liter_pro_h = 148.0
-        fluss_m3_pro_s = fluss_liter_pro_h / 1000 / 3600
-        for time_s in range(0, self.duration_s, self.timestep_s):
-            self.modell.run(timestep_s=self.timestep_s, time_s=time_s)
-            if plot:
+    def run(self):
+        duration_s = self.modell.stimuli.duration_s
+        timestep_s = self.modell.stimuli.timestep_s
+        time_s = self.modell.stimuli.start_s
+        while time_s < duration_s:
+            self.modell.run(timestep_s=timestep_s, time_s=time_s)
+            if self.modell.stimuli.do_plot(time_s=time_s):
                 for _plot in self.plots:
                     _plot.append_plot(
-                        timestep_s=self.timestep_s,
+                        timestep_s=timestep_s,
                         time_s=time_s,
                     )
+            time_s += timestep_s
 
     def plot(self):
         for plot in self.plots:
@@ -43,8 +43,6 @@ if __name__ == "__main__":
         # PlotSpeicher(simulation.speicher_13),
         # PlotHeizung(simulation.heizung),
     )
-    simulation.run(plot=False)
-    simulation.run(plot=False)
-    simulation.run(plot=True)
+    simulation.run()
 
     simulation.plot()

@@ -11,7 +11,8 @@ if typing.TYPE_CHECKING:
 
 
 class PlotSpeicher:
-    def __init__(self, speicher: "Speicher_dezentral"):
+    def __init__(self, modell: "Modell", speicher: "Speicher_dezentral"):
+        self.modell = modell
         self.speicher = speicher
         self.time_array_s = []
         self.time_steps_s = []
@@ -32,13 +33,14 @@ class PlotSpeicher:
         self.fernwaerme_cold_C.append(self.speicher.fernwaerme_cold_C)
         self.energie_verfuegbar_brauchwasser_kWh.append(
             self.speicher._waermeintegral_J(
-                temperaturgrenze_C=50, entnahmehoehe_anteil_von_unten=1.0
+                temperaturgrenze_C=50.0, entnahmehoehe_anteil_von_unten=1.0
             )
             / (3600 * 1000)
         )
         self.energie_verfuegbar_heizung_kWh.append(
             self.speicher._waermeintegral_J(
-                temperaturgrenze_C=35, entnahmehoehe_anteil_von_unten=0.68
+                temperaturgrenze_C=self.modell.zentralheizung.heizkurve_heizungswasser_C,
+                entnahmehoehe_anteil_von_unten=0.68,
             )
             / (3600 * 1000)
         )
