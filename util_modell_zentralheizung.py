@@ -153,14 +153,18 @@ class Zentralheizung:
             if speicher.warmwasser_anforderung:
                 self.warmwasserladung_angefordert = True
             offset -= 2
-        self.anforderungen_todo.append(anforderungen)
         self.fernwaerme_cold_avg_C = mischsumme / self.fernwaerme_totalfluss_m3_pro_s
+        if not self.fernwaermepumpe_on:
+            self.fernwaerme_cold_avg_C = 20.0
         self.fernwaerme_leistung_W = (
             (self.fernwaerme_hot_C - self.fernwaerme_cold_avg_C)
             * DICHTE_WASSER
             * WASSER_WAERMEKAP
             * self.fernwaerme_totalfluss_m3_pro_s
         )
+        if not self.fernwaermepumpe_on:
+            self.fernwaerme_leistung_W = 0.0
+        self.anforderungen_todo.append(anforderungen)
 
     # @property
     # def fernwaerme_cold_avg_C(self) -> float:
@@ -206,3 +210,5 @@ class Zentralheizung:
                 modell.zentralheizung.heizkurve_heizungswasser_C
                 + erhoehung_waermeverluste_C
             )
+            return
+        self.fernwaerme_hot_C = 20.0

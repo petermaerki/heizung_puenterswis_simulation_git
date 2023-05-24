@@ -146,7 +146,7 @@ class PlotEnergiereserve:
             linewidth=2,
             color="red",
             alpha=0.95,
-            label="Brauchwasser exklusiv verfuegbar",
+            label="Brauchwasser verfuegbar max",
         )
         ax.plot(
             np.array(self.time_array_s) / 3600,
@@ -155,7 +155,7 @@ class PlotEnergiereserve:
             linewidth=2,
             color="black",
             alpha=0.95,
-            label="Heizung exklusiv verfuegbar",
+            label="Heizung verfuegbar max",
         )
         ax.set(
             xlabel="time (h)",
