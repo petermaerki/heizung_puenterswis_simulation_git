@@ -124,7 +124,8 @@ class PlotEnergiereserve:
         self.time_array_s.append(time_s)
         self.energie_verfuegbar_brauchwasser_kWh.append(
             self.speicher._waermeintegral_J(
-                temperaturgrenze_C=50.0, entnahmehoehe_anteil_von_unten=1.0
+                temperaturgrenze_C=TEMPERATURGRENZE_BRAUCHWASSER_C,
+                entnahmehoehe_anteil_von_unten=1.0,
             )
             / (3600 * 1000)
         )
@@ -216,7 +217,7 @@ class Speicher_dezentral:
         stimuli: "StimuliWintertag",
         label="Speicher XY",
         fernwaermefluss_liter_pro_h=150.0,
-        startTempC=60.0,
+        startTempC=30.0,
         totalvolumen_m3=0.69,
     ):
         self.stimuli = stimuli
@@ -234,6 +235,7 @@ class Speicher_dezentral:
         self.fernwaerme_cold_C = 0.0
         self.warmwassernutzung = True
         self.heizungnutzung = True
+        self.warmwasser_anforderung = False
 
     def _waermeintegral_J(
         self, temperaturgrenze_C=39, entnahmehoehe_anteil_von_unten=0.68
@@ -382,6 +384,12 @@ class Speicher_dezentral:
             position_raus_anteil_von_unten=1.0,
             volumen_rein_m3=volumen_m3,
         )
+
+        self.warmwasser_anforderung = (
+            self.temperatur_bei_position(position_raus_anteil_von_unten=1.0)
+            < TEMPERATURGRENZE_BRAUCHWASSER_C
+        )
+
         return warmwassertemperatur_C, volumen_m3
 
     def heizungbezug(self, energie_J=1.0, volumen_m3=0.001):
@@ -440,6 +448,7 @@ class Speicher_dezentral:
                 warm_C - kalt_C
             ) * (leistung_kalt_W - leistung_warm_W) + leistung_warm_W
             self.heizungbezug(energie_J=leistung_W * timestep_s)
+        self.warmwasser_anforderung
 
     def update_input(self, zentralheizung: "Zentralheizung"):
         self.fernwaerme_hot_C = zentralheizung.fernwaerme_hot_C

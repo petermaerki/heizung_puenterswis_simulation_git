@@ -17,10 +17,14 @@ class Modell:
             Speicher_dezentral
         ] = (  # Werte gemaess Revisionsplan 1. Etappe 2008-08-20
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=148.0, label="Haus 1", stimuli=self.stimuli
+                fernwaermefluss_liter_pro_h=148.0,
+                label="Haus 1 Ferien",
+                stimuli=self.stimuli,
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=129.0, label="Haus 2", stimuli=self.stimuli
+                fernwaermefluss_liter_pro_h=129.0,
+                label="Haus 2 Party",
+                stimuli=self.stimuli,
             ),
             Speicher_dezentral(
                 fernwaermefluss_liter_pro_h=129.0, label="Haus 3", stimuli=self.stimuli
