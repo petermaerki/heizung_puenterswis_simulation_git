@@ -37,29 +37,29 @@ class PlotZentralheizung:
         ax.plot(
             np.array(self.time_array_s) / 3600,
             self.fernwaerme_hot_C,
-            linestyle="dashed",
-            linewidth=3,
+            linestyle="solid",
+            linewidth=2,
             color="red",
-            alpha=0.5,
+            alpha=0.95,
             label="fernwaerme_hot",
         )
         ax.plot(
             np.array(self.time_array_s) / 3600,
             self.fernwaerme_cold_avg_C,
-            linestyle="dotted",
+            linestyle="solid",
             linewidth=3,
             color="blue",
-            alpha=0.5,
+            alpha=0.95,
             label="fernwaerme_cold",
         )
         ax2 = ax.twinx()
         ax2.plot(
             np.array(self.time_array_s) / 3600,
             self.fernwaerme_leistung_W,
-            linestyle="dotted",
-            linewidth=3,
-            color="green",
-            alpha=0.5,
+            linestyle="solid",
+            linewidth=1,
+            color="black",
+            alpha=0.95,
             label="fernwaerme_leistung_W",
         )
         # ax2.plot(np.array(self.time_array_s) / 3600, leistung_in_speicher, linestyle='dotted', linewidth=5, color='orange', alpha=0.5, label = 'leistung')
@@ -103,7 +103,6 @@ class Zentralheizung:
     def update_input(self, speichers: typing.List["Speicher_dezentral"]):
         # self.fernwaerme_cold_C = []
         self._update_heizkurve()
-
         mischsumme = 0.0
         self.fernwaerme_totalfluss_m3_pro_s = 0.0
         for speicher in speichers:

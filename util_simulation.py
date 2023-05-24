@@ -1,11 +1,10 @@
 from util_modell import Modell
-from util_modell_speicher_dezentral import PlotSpeicher
+from util_modell_speicher_dezentral import (
+    PlotEnergiereserve,
+    PlotSpeicher,
+    PlotSpeicherSchichtung,
+)
 from util_stimuly import StimuliWintertag
-
-"""
-        self.warmwasserbedarf_haus_W = 255
-        self.heizbedarf_haus_W = 5000
-"""
 
 
 class Simulation:
