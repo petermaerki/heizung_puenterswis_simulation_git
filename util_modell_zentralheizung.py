@@ -59,7 +59,7 @@ class PlotZentralheizung:
             linestyle="solid",
             linewidth=1,
             color="black",
-            alpha=0.95,
+            alpha=0.5,
             label="fernwaerme_leistung_W",
         )
         # ax2.plot(np.array(self.time_array_s) / 3600, leistung_in_speicher, linestyle='dotted', linewidth=5, color='orange', alpha=0.5, label = 'leistung')

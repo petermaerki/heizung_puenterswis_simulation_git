@@ -232,7 +232,7 @@ class Speicher_dezentral:
         self.volumenliste_vorher_debug = []
         self.fernwaerme_hot_C = 0.0
         self.fernwaerme_cold_C = 0.0
-        self.warmwassernutzung = False
+        self.warmwassernutzung = True
         self.heizungnutzung = True
 
     def _waermeintegral_J(
@@ -374,7 +374,7 @@ class Speicher_dezentral:
             position_raus_anteil_von_unten=1.0
         )
         kaltwasser_C = 15.0
-        (temperaturhub_C) = warmwassertemperatur_C - kaltwasser_C
+        temperaturhub_C = warmwassertemperatur_C - kaltwasser_C
         assert temperaturhub_C >= 0.0
         volumen_m3 = energie_J / (temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER)
         self.austauschen(

@@ -37,7 +37,7 @@ if __name__ == "__main__":
     simulation = Simulation(stimuli=stimuli)
 
     simulation.plots = (
-        PlotSpeicher(speicher=simulation.modell.speichers[0]),
+        PlotSpeicher(modell=simulation.modell, speicher=simulation.modell.speichers[0]),
         # PlotSpeicher(simulation.speicher_verschwender),
         # PlotSpeicher(simulation.speicher_13),
         # PlotHeizung(simulation.heizung),
