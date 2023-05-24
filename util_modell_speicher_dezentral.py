@@ -219,6 +219,7 @@ class Speicher_dezentral:
         fernwaermefluss_liter_pro_h=150.0,
         startTempC=30.0,
         totalvolumen_m3=0.69,
+        verbrauchsfaktor_party=1.0,
     ):
         self.stimuli = stimuli
         self.label = label
@@ -226,6 +227,8 @@ class Speicher_dezentral:
         # self.teilspeicher_i = 10
         self.totalvolumen_m3 = totalvolumen_m3
         # self.teilvolumen_m3 = 0.69 / self.teilspeicher_i
+        self.verbrauchsfaktor_party = verbrauchsfaktor_party
+        assert self.verbrauchsfaktor_party > 1e-3
         self.volumenliste = (
             []
         )  # self.teilspeicher_i * [(startTempC, self.teilvolumen_m3)]
@@ -435,10 +438,11 @@ class Speicher_dezentral:
             )
 
         if self.warmwassernutzung:
-            leistung_warmwasser = (
+            leistung_warmwasser_W = (
                 255  # gemaess 20230521b_kennzahlen.ods, fuer 3 Personen
             )
-            self.warmwasserbezug(energie_J=leistung_warmwasser * timestep_s)
+            leistung_warmwasser_W = leistung_warmwasser_W * self.verbrauchsfaktor_party
+            self.warmwasserbezug(energie_J=leistung_warmwasser_W * timestep_s)
         if self.heizungnutzung and self.stimuli.umgebungstemperatur_C < 20.0:
             kalt_C = -14.0
             warm_C = 20.0
@@ -447,8 +451,8 @@ class Speicher_dezentral:
             leistung_W = (warm_C - self.stimuli.umgebungstemperatur_C) / (
                 warm_C - kalt_C
             ) * (leistung_kalt_W - leistung_warm_W) + leistung_warm_W
+            leistung_W = leistung_W * self.verbrauchsfaktor_party
             self.heizungbezug(energie_J=leistung_W * timestep_s)
-        self.warmwasser_anforderung
 
     def update_input(self, zentralheizung: "Zentralheizung"):
         self.fernwaerme_hot_C = zentralheizung.fernwaerme_hot_C

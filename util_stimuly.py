@@ -11,7 +11,7 @@ class StimuliWintertag:
     def __init__(self):
         self.umgebungstemperatur_C = 15.0
         self.start_s = -2 * DAY_S
-        self.duration_s = 1 * DAY_S
+        self.duration_s = 3 * DAY_S
         self.timestep_s = 5 * 60.0
 
     def do_plot(self, time_s) -> bool:
