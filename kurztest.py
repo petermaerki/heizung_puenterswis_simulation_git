@@ -41,9 +41,12 @@ speicher1 = util_modell_speicher_dezentral.Speicher_dezentral(
 #     print(f"temperatur_raus {temperatur_raus}")
 # speicher1.print()
 
-temperatur = 5
-for i in range(14000):
-    # speicher1.run(timestep_s=60, time_s=1, modell=modell
-    temperatur, volumen = speicher1.warmwasserbezug(energie_J=10000)
+# temperatur = 5
+# for i in range(14000):
+#     # speicher1.run(timestep_s=60, time_s=1, modell=modell
+#     temperatur, volumen = speicher1.warmwasserbezug(energie_J=10000)
+# speicher1.print()
+# print(temperatur, volumen)
+
 speicher1.print()
-print(temperatur, volumen)
+print(speicher1._verlustleistung_W())

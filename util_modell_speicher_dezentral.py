@@ -242,6 +242,7 @@ class Speicher_dezentral:
         self.warmwassernutzung = True
         self.heizungnutzung = True
         self.warmwasser_anforderung = False
+        self.verlustleistung_W = False
 
     def _waermeintegral_J(
         self, temperaturgrenze_C=39, entnahmehoehe_anteil_von_unten=0.68
@@ -432,6 +433,18 @@ class Speicher_dezentral:
             volumen_m3_array.append(volumen_m3_summe)
         return [temperatur_C_array, volumen_m3_array]
 
+    def _mittlere_temperatur_C(self):
+        temperaturen_C = self.temperaturprofil()
+        return np.average(np.array(temperaturen_C))
+
+    def _verlustleistung_W(self):
+        temperaturunterschied_C = (
+            self._mittlere_temperatur_C() - 20.0
+        )  # vereinfacht: Keller fix auf 20.0C
+        leitwert_speicherverlust_W_pro_K = 1.332  # 20230525a_kennzahlen.ods
+        verlustleistung_W = temperaturunterschied_C * leitwert_speicherverlust_W_pro_K
+        return verlustleistung_W
+
     def run(self, timestep_s: float, time_s: float, modell: "Modell"):
         if modell.zentralheizung.fernwaermepumpe_on:
             self.fernwaerme_cold_C = self.austauschen(
@@ -448,6 +461,11 @@ class Speicher_dezentral:
                 leistung_warmwasser_W * self.verbrauchsfaktor_grossfamilie
             )
             self.warmwasserbezug(energie_J=leistung_warmwasser_W * timestep_s)
+
+        self.verlustleistung_W = (
+            self._verlustleistung_W()
+        )  # den Verlust rechne ich später in den Heizungsbezug mit ein
+
         if self.heizungnutzung and self.stimuli.umgebungstemperatur_C < 20.0:
             kalt_C = -14.0
             warm_C = 20.0
@@ -456,7 +474,9 @@ class Speicher_dezentral:
             leistung_W = (warm_C - self.stimuli.umgebungstemperatur_C) / (
                 warm_C - kalt_C
             ) * (leistung_kalt_W - leistung_warm_W) + leistung_warm_W
-            leistung_W = leistung_W * self.verbrauchsfaktor_grossfamilie
+            leistung_W = (
+                leistung_W * self.verbrauchsfaktor_grossfamilie + self.verlustleistung_W
+            )
             self.heizungbezug(energie_J=leistung_W * timestep_s)
 
     def update_input(self, zentralheizung: "Zentralheizung"):

@@ -1,0 +1,142 @@
+import typing
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from util_konstanten import DICHTE_WASSER, WASSER_WAERMEKAP
+from util_stimuly import StimuliWintertag
+
+if typing.TYPE_CHECKING:
+    from util_modell import Modell
+    from util_modell_speicher_dezentral import Speicher_dezentral
+    from util_simulation import Stimulus
+
+
+class PlotFernleitung:
+    def __init__(self, modell: "Modell", speicher: "Speicher_dezentral"):
+        # self.modell = modell
+        # self.speicher = speicher
+        self.time_array_s = []
+        # self.energie_verfuegbar_brauchwasser_kWh = []
+        # self.energie_verfuegbar_heizung_kWh = []
+        self.fernwaerme_wassertemperatur_rein_array_C = []
+        self.fernwaerme_wassertemperatur_array_raus_C = []
+        self.verlustleistung_array_W = []
+
+    def append_plot(
+        self,
+        timestep_s: float,
+        time_s: float,
+    ):
+        self.time_array_s.append(time_s)
+        self.fernwaerme_wassertemperatur_rein_array_C.append(
+            self.fernwaerme_wassertemperatur_rein_C
+        )
+        self.fernwaerme_wassertemperatur_array_raus_C.append(
+            self.fernwaerme_wassertemperatur_raus_C
+        )
+        self.verlustleistung_array_W.append(self.verlustleistung_W)
+
+    def plot(self):
+        fig, ax = plt.subplots()
+        ax.plot(
+            np.array(self.time_array_s) / 3600,
+            self.fernwaerme_wassertemperatur_rein_array_C,
+            linestyle="solid",
+            linewidth=2,
+            color="red",
+            alpha=0.95,
+            label="Fernleitung wasser rein temperatur C",
+        )
+        ax.plot(
+            np.array(self.time_array_s) / 3600,
+            self.fernwaerme_wassertemperatur_array_raus_C,
+            linestyle="solid",
+            linewidth=2,
+            color="blue",
+            alpha=0.95,
+            label="Fernleitung wasser raus temperatur C",
+        )
+        ax.set(
+            xlabel="time (h)",
+            ylabel="Temperatur",
+            title="Fernleitung Tempeatur ",  # + self.speicher.label,
+        )
+        ax.set(xlabel="time (h)", ylabel="Temperature C", title="Zentralheizung")
+        ax2 = ax.twinx()
+        ax2.plot(
+            np.array(self.time_array_s) / 3600,
+            np.array(self.verlustleistung_array_W) / 1000.0,
+            linestyle="solid",
+            linewidth=1,
+            color="grey",
+            alpha=0.95,
+            label="Fernleitung Verlustleistung kW",
+        )
+        ax2.set(ylabel="Power kW")
+        ax2.legend()
+        ax.legend()
+        ax.grid()
+        plt.savefig(
+            "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/energiereserve_"
+            + self.speicher.label
+            + ".png"
+        )
+        plt.show()
+
+
+class Fernleitung:  # eine Leitung, also vorlauf oder ruecklauf, Siedlung Puenterswies
+    def __init__(
+        self,
+        stimuli: "StimuliWintertag",
+    ):
+        self.stimuli = stimuli
+        self.fernwaerme_fluss_m3_pro_s = 0.0
+        self.fernwaerme_wassertemperatur_rein_C = 0.0
+        self.fernwaerme_wassertemperatur_raus_C = 0.0
+        self.verlustleistung_W = 0.0
+        self.fernleitung_waermekapazitaet_J_pro_K = (
+            9.24e5  # aus 20230525a_kennzahlen.ods
+        )
+        self.fernleitung_verlustwaerme_leitwert_W_pro_K = (
+            48.0  # aus 20230525a_kennzahlen.ods
+        )
+        self.fernleitungstemperatur_C = 20.0
+        self.umgebungstemperatur_C = 20.0  # im Sommer hoeher, im Winter tiefer, in der Erde anders. Hier ganz grob ein fixer Wert unabhaengig der Jahreszeit.
+
+    def update_input(self, speichers: typing.List["Speicher_dezentral"]):
+        pass
+
+    def run(self, timestep_s: float, time_s: float, modell: "Modell"):
+        verlustenergie_J = (
+            (self.fernleitungstemperatur_C - self.umgebungstemperatur_C)
+            * self.fernleitung_verlustwaerme_leitwert_W_pro_K
+            * timestep_s
+        )
+        self.verlustleistung_W = verlustenergie_J / timestep_s
+        self.fernleitungstemperatur_C -= (
+            verlustenergie_J / self.fernleitung_waermekapazitaet_J_pro_K
+        )
+
+        waermekap_wasser_austausch_J_pro_K = (
+            self.fernwaerme_fluss_m3_pro_s
+            * timestep_s
+            * DICHTE_WASSER
+            * WASSER_WAERMEKAP
+        )
+
+        # Ausgleich der Wärme zwischen Leitung und Wasser
+        self.fernleitungstemperatur_C = (
+            self.fernwaerme_wassertemperatur_rein_C * waermekap_wasser_austausch_J_pro_K
+            + self.fernleitungstemperatur_C * self.fernleitung_waermekapazitaet_J_pro_K
+        ) / (
+            waermekap_wasser_austausch_J_pro_K
+            + self.fernleitung_waermekapazitaet_J_pro_K
+        )
+        self.fernwaerme_wassertemperatur_raus_C = self.fernleitungstemperatur_C
+
+        if self.warmwasserladung_angefordert and not self.warmwasserladung_ongoing:
+            self.warmwasserladung_start_s = time_s
+            self.warmwasserladung_ongoing = True
+
+        self.fernwaerme_wassertemperatur_raus_C = 20.0
