@@ -1,10 +1,12 @@
+import os
+import pathlib
+
 from util_modell import Modell
-from util_modell_speicher_dezentral import (
-    PlotEnergiereserve,
-    PlotSpeicher,
-    PlotSpeicherSchichtung,
-)
+from util_modell_speichers import PlotSpeichersAnforderungen
 from util_stimuly import Stimuli, stimuli_wintertag
+
+DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).resolve().parent
+DIRECTORY_TMP = DIRECTORY_OF_THIS_FILE / "tmp"
 
 
 class Simulation:
@@ -32,15 +34,24 @@ class Simulation:
             plot.plot()
 
 
-if __name__ == "__main__":
+def main():
+    DIRECTORY_TMP.mkdir(parents=True, exist_ok=True)
+    os.chdir(DIRECTORY_TMP)
     simulation = Simulation(stimuli=stimuli_wintertag)
 
+    modell = simulation.modell
+
+    speicher = simulation.modell.speichers.get_speicher("Haus 3 Grossfamilie")
+
     simulation.plots = (
-        PlotSpeicher(modell=simulation.modell, speicher=simulation.modell.speichers[0]),
-        # PlotSpeicher(simulation.speicher_verschwender),
-        # PlotSpeicher(simulation.speicher_13),
-        # PlotHeizung(simulation.heizung),
+        # PlotSpeicherSchichtung(modell=simulation.modell, speicher=speicher),
+        # PlotEnergiereserve(modell=simulation.modell, speicher=speicher),
+        PlotSpeichersAnforderungen(speichers=simulation.modell.speichers),
     )
     simulation.run()
 
     simulation.plot()
+
+
+if __name__ == "__main__":
+    main()

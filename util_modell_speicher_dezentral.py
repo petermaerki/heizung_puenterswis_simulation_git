@@ -32,8 +32,8 @@ class PlotSpeicher:
     ):
         self.time_array_s.append(time_s)
         self.temperaturen_C.append(self.speicher.temperaturprofil())
-        self.fernwaerme_hot_C.append(self.speicher.fernwaerme_hot_C)
-        self.fernwaerme_cold_C.append(self.speicher.fernwaerme_cold_C)
+        self.fernwaerme_hot_C.append(self.speicher.in_fernwaerme_hot_C)
+        self.fernwaerme_cold_C.append(self.speicher.out_fernwaerme_cold_C)
         self.energie_verfuegbar_brauchwasser_kWh.append(
             self.speicher._waermeintegral_J(
                 temperaturgrenze_C=TEMPERATURGRENZE_BRAUCHWASSER_C,
@@ -107,6 +107,7 @@ class PlotSpeicher:
         ax.grid()
         # plt.show()
         plt.savefig(f"speicher_temperaturverlauf_{self.speicher.label}.png")
+        plt.clf()
 
 
 class PlotEnergiereserve:
@@ -166,7 +167,7 @@ class PlotEnergiereserve:
         ax.legend()
         ax.grid()
         plt.savefig(f"energiereserve_{self.speicher.label}.png")
-        # plt.show()
+        plt.clf()
 
 
 class PlotSpeicherSchichtung:
@@ -211,7 +212,7 @@ class PlotSpeicherSchichtung:
         plt.title("Speicher Temperaturschichtung " + self.speicher.label)
         # ax.set(xlabel="time (h)", ylabel="Temperature C", title=self.speicher.label)
         plt.savefig(f"schichtung__{self.speicher.label}.png")
-        # plt.show()
+        plt.clf()
 
 
 class Speicher_dezentral:
@@ -226,7 +227,7 @@ class Speicher_dezentral:
     ):
         self.stimuli = stimuli
         self.label = label
-        self.fernwaermefluss_m3_pro_s = fernwaermefluss_liter_pro_h / 1000 / 3600
+        self.out_fernwaermefluss_m3_pro_s = fernwaermefluss_liter_pro_h / 1000 / 3600
         # self.teilspeicher_i = 10
         self.totalvolumen_m3 = totalvolumen_m3
         # self.teilvolumen_m3 = 0.69 / self.teilspeicher_i
@@ -237,11 +238,11 @@ class Speicher_dezentral:
         )  # self.teilspeicher_i * [(startTempC, self.teilvolumen_m3)]
         self.volumenliste.append((startTempC, self.totalvolumen_m3))
         self.volumenliste_vorher_debug = []
-        self.fernwaerme_hot_C = 0.0
-        self.fernwaerme_cold_C = 0.0
+        self.in_fernwaerme_hot_C = 0.0
+        self.out_fernwaerme_cold_C = 0.0
         self.warmwassernutzung = True
         self.heizungnutzung = True
-        self.warmwasser_anforderung = False
+        self.out_warmwasser_anforderung = False
         self.verlustleistung_W = False
 
     def _waermeintegral_J(
@@ -392,7 +393,7 @@ class Speicher_dezentral:
             volumen_rein_m3=volumen_m3,
         )
 
-        self.warmwasser_anforderung = (
+        self.out_warmwasser_anforderung = (
             self.temperatur_bei_position(position_raus_anteil_von_unten=1.0)
             < TEMPERATURGRENZE_BRAUCHWASSER_C
         )
@@ -447,9 +448,9 @@ class Speicher_dezentral:
 
     def run(self, timestep_s: float, time_s: float, modell: "Modell"):
         if modell.zentralheizung.fernwaermepumpe_on:
-            self.fernwaerme_cold_C = self.austauschen(
-                temp_rein_C=self.fernwaerme_hot_C,
-                volumen_rein_m3=self.fernwaermefluss_m3_pro_s * timestep_s,
+            self.out_fernwaerme_cold_C = self.austauschen(
+                temp_rein_C=self.in_fernwaerme_hot_C,
+                volumen_rein_m3=self.out_fernwaermefluss_m3_pro_s * timestep_s,
                 position_raus_anteil_von_unten=0.0,
             )
 
@@ -480,4 +481,4 @@ class Speicher_dezentral:
             self.heizungbezug(energie_J=leistung_W * timestep_s)
 
     def update_input(self, zentralheizung: "Zentralheizung"):
-        self.fernwaerme_hot_C = zentralheizung.fernwaerme_hot_C
+        self.in_fernwaerme_hot_C = zentralheizung.out_fernwaerme_hot_C

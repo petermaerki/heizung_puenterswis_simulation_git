@@ -47,8 +47,7 @@ stimuli_sommertag = Stimuli(
     timestep_s=5 * 60.0,
 )
 
-# ALL: tuple[Stimuli] = (stimuli_wintertag, stimuli_fruelingstag, stimuli_sommertag)
-ALL: tuple[Stimuli] = (stimuli_wintertag, stimuli_sommertag)
+ALL: tuple[Stimuli] = (stimuli_wintertag, stimuli_fruelingstag, stimuli_sommertag)
 
 
 def get_stimuli(label: str) -> Stimuli:

@@ -3,8 +3,9 @@ import pathlib
 
 import papermill
 
+import util_modell_speicher_dezentral
+import util_modell_zentralheizung
 import util_stimuly
-from util_modell_speicher_dezentral import PlotSpeicher
 from util_simulation import Simulation
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).resolve().parent
@@ -15,10 +16,33 @@ def plot_images(stimuli: util_stimuly.Stimuli, directory: pathlib.Path):
     simulation = Simulation(stimuli=stimuli)
 
     simulation.plots = (
-        PlotSpeicher(modell=simulation.modell, speicher=simulation.modell.speichers[0]),
-        # PlotSpeicher(simulation.speicher_verschwender),
-        # PlotSpeicher(simulation.speicher_13),
-        # PlotHeizung(simulation.heizung),
+        util_modell_speicher_dezentral.PlotSpeicher(
+            modell=simulation.modell, speicher=simulation.modell.speichers[0]
+        ),
+        util_modell_speicher_dezentral.PlotEnergiereserve(
+            modell=simulation.modell, speicher=simulation.modell.speichers[1 - 1]
+        ),
+        util_modell_speicher_dezentral.PlotSpeicherSchichtung(
+            modell=simulation.modell, speicher=simulation.modell.speichers[1 - 1]
+        ),
+        util_modell_speicher_dezentral.PlotEnergiereserve(
+            modell=simulation.modell, speicher=simulation.modell.speichers[2 - 1]
+        ),
+        util_modell_speicher_dezentral.PlotSpeicherSchichtung(
+            modell=simulation.modell, speicher=simulation.modell.speichers[2 - 1]
+        ),
+        util_modell_speicher_dezentral.PlotEnergiereserve(
+            modell=simulation.modell, speicher=simulation.modell.speichers[3 - 1]
+        ),
+        util_modell_speicher_dezentral.PlotSpeicherSchichtung(
+            modell=simulation.modell, speicher=simulation.modell.speichers[3 - 1]
+        ),
+        util_modell_zentralheizung.PlotZentralheizung(
+            zentralheizung=simulation.modell.zentralheizung
+        ),
+        util_modell_zentralheizung.PlotZentralheizungAnforderungen(
+            zentralheizung=simulation.modell.zentralheizung
+        ),
     )
     simulation.run()
 

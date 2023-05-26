@@ -108,12 +108,10 @@ class Fernleitung:  # eine Leitung, also vorlauf oder ruecklauf, Siedlung Puente
         pass
 
     def run(self, timestep_s: float, time_s: float, modell: "Modell"):
-        verlustenergie_J = (
-            (self.fernleitungstemperatur_C - self.umgebungstemperatur_C)
-            * self.fernleitung_verlustwaerme_leitwert_W_pro_K
-            * timestep_s
-        )
-        self.verlustleistung_W = verlustenergie_J / timestep_s
+        self.verlustleistung_W = (
+            self.fernleitungstemperatur_C - self.umgebungstemperatur_C
+        ) * self.fernleitung_verlustwaerme_leitwert_W_pro_K
+        verlustenergie_J = self.verlustleistung_W * timestep_s
         self.fernleitungstemperatur_C -= (
             verlustenergie_J / self.fernleitung_waermekapazitaet_J_pro_K
         )
@@ -134,9 +132,3 @@ class Fernleitung:  # eine Leitung, also vorlauf oder ruecklauf, Siedlung Puente
             + self.fernleitung_waermekapazitaet_J_pro_K
         )
         self.fernwaerme_wassertemperatur_raus_C = self.fernleitungstemperatur_C
-
-        if self.warmwasserladung_angefordert and not self.warmwasserladung_ongoing:
-            self.warmwasserladung_start_s = time_s
-            self.warmwasserladung_ongoing = True
-
-        self.fernwaerme_wassertemperatur_raus_C = 20.0
