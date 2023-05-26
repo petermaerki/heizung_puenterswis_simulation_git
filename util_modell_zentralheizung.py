@@ -69,6 +69,10 @@ class PlotZentralheizung:
 
         ax2.legend()
         ax.grid()
+        plt.savefig(
+            "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/zentralheizung"
+            + ".png"
+        )
         plt.show()
 
 
@@ -100,7 +104,10 @@ class PlotZentralheizungAnforderungen:
         ax.set(xlabel="time (h)", ylabel="Anforderungen", title="Zentralheizung")
         ax.legend()
         ax.grid()
-
+        plt.savefig(
+            "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/anforderungen_"
+            + ".png"
+        )
         plt.show()
 
 

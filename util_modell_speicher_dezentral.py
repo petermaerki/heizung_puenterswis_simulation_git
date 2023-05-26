@@ -164,6 +164,11 @@ class PlotEnergiereserve:
         )
         ax.legend()
         ax.grid()
+        plt.savefig(
+            "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/energiereserve_"
+            + self.speicher.label
+            + ".png"
+        )
         plt.show()
 
 
@@ -208,6 +213,11 @@ class PlotSpeicherSchichtung:
         plt.xlabel("time (h)")
         plt.title("Speicher Temperaturschichtung " + self.speicher.label)
         # ax.set(xlabel="time (h)", ylabel="Temperature C", title=self.speicher.label)
+        plt.savefig(
+            "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/schichtung__"
+            + self.speicher.label
+            + ".png"
+        )
         plt.show()
 
 
