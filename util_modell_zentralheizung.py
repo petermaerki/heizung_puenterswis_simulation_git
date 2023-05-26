@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from util_konstanten import DICHTE_WASSER, WASSER_WAERMEKAP
-from util_stimuly import StimuliWintertag
+from util_stimuly import Stimuli
 
 if typing.TYPE_CHECKING:
     from util_modell import Modell
@@ -69,11 +69,8 @@ class PlotZentralheizung:
 
         ax2.legend()
         ax.grid()
-        plt.savefig(
-            "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/zentralheizung"
-            + ".png"
-        )
-        plt.show()
+        plt.savefig("zentralheizung.png")
+        # plt.show()
 
 
 class PlotZentralheizungAnforderungen:
@@ -104,17 +101,14 @@ class PlotZentralheizungAnforderungen:
         ax.set(xlabel="time (h)", ylabel="Anforderungen", title="Zentralheizung")
         ax.legend()
         ax.grid()
-        plt.savefig(
-            "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/anforderungen_"
-            + ".png"
-        )
-        plt.show()
+        plt.savefig("anforderungen.png")
+        # plt.show()
 
 
 class Zentralheizung:
     def __init__(
         self,
-        stimuli: "StimuliWintertag",
+        stimuli: "Stimuli",
     ):
         # self.fernwaerme_cold_C = []
         # self.fernwaermefluss_m3_pro_s = []

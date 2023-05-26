@@ -4,11 +4,11 @@ from util_modell_speicher_dezentral import (
     PlotSpeicher,
     PlotSpeicherSchichtung,
 )
-from util_stimuly import StimuliWintertag
+from util_stimuly import Stimuli, stimuli_wintertag
 
 
 class Simulation:
-    def __init__(self, stimuli: "StimuliWintertag"):
+    def __init__(self, stimuli: "Stimuli"):
         self.plots = []
 
         self.modell = Modell(stimuli)
@@ -33,8 +33,7 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    stimuli = StimuliWintertag()
-    simulation = Simulation(stimuli=stimuli)
+    simulation = Simulation(stimuli=stimuli_wintertag)
 
     simulation.plots = (
         PlotSpeicher(modell=simulation.modell, speicher=simulation.modell.speichers[0]),

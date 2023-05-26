@@ -105,7 +105,8 @@ class PlotSpeicher:
         ax.legend()
         ax2.legend()
         ax.grid()
-        plt.show()
+        # plt.show()
+        plt.savefig(f"speicher_temperaturverlauf_{self.speicher.label}.png")
 
 
 class PlotEnergiereserve:
@@ -164,12 +165,8 @@ class PlotEnergiereserve:
         )
         ax.legend()
         ax.grid()
-        plt.savefig(
-            "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/energiereserve_"
-            + self.speicher.label
-            + ".png"
-        )
-        plt.show()
+        plt.savefig(f"energiereserve_{self.speicher.label}.png")
+        # plt.show()
 
 
 class PlotSpeicherSchichtung:
@@ -213,12 +210,8 @@ class PlotSpeicherSchichtung:
         plt.xlabel("time (h)")
         plt.title("Speicher Temperaturschichtung " + self.speicher.label)
         # ax.set(xlabel="time (h)", ylabel="Temperature C", title=self.speicher.label)
-        plt.savefig(
-            "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/schichtung__"
-            + self.speicher.label
-            + ".png"
-        )
-        plt.show()
+        plt.savefig(f"schichtung__{self.speicher.label}.png")
+        # plt.show()
 
 
 class Speicher_dezentral:

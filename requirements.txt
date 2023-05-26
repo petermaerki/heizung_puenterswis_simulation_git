@@ -10,6 +10,7 @@ jupyterlab-pygments
 jupyterlab_server
 matplotlib
 matplotlib-inline
+papermill
 
 ### Formatting, static code analysis, unit tests
 black
