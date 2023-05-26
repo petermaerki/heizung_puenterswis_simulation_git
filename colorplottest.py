@@ -34,6 +34,12 @@ levels = np.linspace(min, max, max - min + 1)
 plt.contourf(X, Y, Z, levels, cmap="turbo")  # "Reds", 'coolwarm',"plasma"
 plt.colorbar(ticks=range(10, 90, 10), label="Temperatur C")
 plt.yticks([0, 1], ("unten", "oben"))
+
+plt.savefig(
+    "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/energiereserve_"
+    + ".png"
+)
+
 plt.show()
 
 

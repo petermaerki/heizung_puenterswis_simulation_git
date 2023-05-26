@@ -25,13 +25,13 @@ class Modell:
                 fernwaermefluss_liter_pro_h=129.0,
                 label="Haus 2 Ferien",
                 stimuli=self.stimuli,
-                verbrauchsfaktor_party=0.01,  # Ferien
+                verbrauchsfaktor_grossfamilie=0.01,  # Ferien
             ),
             Speicher_dezentral(
                 fernwaermefluss_liter_pro_h=129.0,
-                label="Haus 3 Party",
+                label="Haus 3 Grossfamilie",
                 stimuli=self.stimuli,
-                verbrauchsfaktor_party=1.8,  # Party
+                verbrauchsfaktor_grossfamilie=1.8,  # Grossfamilie
             ),
             Speicher_dezentral(
                 fernwaermefluss_liter_pro_h=178.0, label="Haus 4", stimuli=self.stimuli
