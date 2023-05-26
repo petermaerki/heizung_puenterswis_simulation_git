@@ -82,6 +82,13 @@
 					"console": "integratedTerminal"
 				},
 				{
+					"name": "Python: Test Speicher Dezentral",
+					"type": "python",
+					"request": "launch",
+					"program": "test_speicher_dezentral.py",
+					"console": "integratedTerminal"
+				},
+				{
 					"name": "Python: Current File",
 					"type": "python",
 					"request": "launch",

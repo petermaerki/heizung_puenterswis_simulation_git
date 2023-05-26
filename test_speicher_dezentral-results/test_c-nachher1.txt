@@ -1,0 +1,10 @@
+Gesamtenergie 172591700.0 J
+Gesamtvolumen 0.690000 m^3
+
+Schichtung
+Temperatur C Volumen m^3
+60.0 0.685363
+15.0 0.004637
+
+Aux
+out_wasser_C=66.470

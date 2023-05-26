@@ -1,11 +1,13 @@
-import typing
+import pathlib
+from typing import TYPE_CHECKING, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from util_konstanten import DICHTE_WASSER, WASSER_WAERMEKAP
+from util_stimuli import Stimuli
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from util_modell import Modell
     from util_modell_fernleitung import Fernleitung
     from util_modell_zentralheizung import Zentralheizung
@@ -191,6 +193,8 @@ class PlotSpeicherSchichtung:
         )
 
     def plot(self):
+        # TODO: Gesamtvolument berechen und überprüfen, ob der Speicher noch gleich voll ist.
+
         min_C = 10
         max_C = 80
         levels = np.linspace(min_C, max_C, max_C - min_C + 1)
@@ -219,7 +223,7 @@ class PlotSpeicherSchichtung:
 class Speicher_dezentral:
     def __init__(
         self,
-        stimuli: "StimuliWintertag",
+        stimuli: "Stimuli",
         label="Speicher XY",
         fernwaermefluss_liter_pro_h=150.0,
         startTempC=30.0,
@@ -228,16 +232,20 @@ class Speicher_dezentral:
     ):
         self.stimuli = stimuli
         self.label = label
+        self.startTempC = startTempC
         self.out_fernwaermefluss_m3_pro_s = fernwaermefluss_liter_pro_h / 1000 / 3600
         # self.teilspeicher_i = 10
         self.totalvolumen_m3 = totalvolumen_m3
+        self.ruecklauf_bodenheizung_C = 24.0
+        self.anteil_auslass_von_unten = 0.68
+        self.volumen_auslass_von_unten_m3 = (
+            self.anteil_auslass_von_unten * self.totalvolumen_m3
+        )
         # self.teilvolumen_m3 = 0.69 / self.teilspeicher_i
         self.verbrauchsfaktor_grossfamilie = verbrauchsfaktor_grossfamilie
         assert self.verbrauchsfaktor_grossfamilie > 1e-3
-        self.volumenliste = (
-            []
-        )  # self.teilspeicher_i * [(startTempC, self.teilvolumen_m3)]
-        self.volumenliste.append((startTempC, self.totalvolumen_m3))
+        self.packet_liste = [(startTempC, self.totalvolumen_m3)]
+        """ self.teilspeicher_i * [(startTempC, self.teilvolumen_m3)] """
         self.volumenliste_vorher_debug = []
         self.in_wasser_C = 0.0
         self.out_wasser_C = 0.0
@@ -245,6 +253,17 @@ class Speicher_dezentral:
         self.heizungnutzung = True
         self.out_warmwasser_anforderung = False
         self.verlustleistung_W = False
+
+    def reset(self, packets: Tuple[Tuple[float, float]]) -> None:
+        self.packet_liste = []
+        volumen_m3 = 0.0
+        for temp_C, vol_m3 in packets:
+            assert isinstance(temp_C, float)
+            assert isinstance(vol_m3, float)
+            self.packet_liste.append((temp_C, vol_m3))
+            volumen_m3 += vol_m3
+        self.packet_liste.append((self.startTempC, self.totalvolumen_m3 - volumen_m3))
+        self.packet_liste.sort()
 
     def _waermeintegral_J(
         self, temperaturgrenze_C=39, entnahmehoehe_anteil_von_unten=0.68
@@ -271,17 +290,168 @@ class Speicher_dezentral:
         return energie_J
 
     def print(self):
-        for [temp_C, volumen_m3] in self.volumenliste:
+        for [temp_C, volumen_m3] in self.packet_liste:
             print(
                 f"Schichtung vom Speicher: Temperatur C: {temp_C:0.1f}, Volumen m^3: {volumen_m3:0.6f}"
             )
 
-    def _sort(self):
-        self.volumenliste.sort(key=lambda a: a[0], reverse=True)
+    @property
+    def energie_total_J(self) -> None:
+        energie_J = 0.0
+        for temp_C, volumen_m3 in self.packet_liste:
+            energie_J += temp_C * volumen_m3
+        return energie_J * WASSER_WAERMEKAP * DICHTE_WASSER
 
-    def _gesamtvolumen_justieren(self):  # wegen rundungsfehlern justieren
+    @property
+    def berechnetes_volumen_total_m3(self) -> None:
+        total_m3 = 0.0
+        for temp_C, volumen_m3 in self.packet_liste:
+            total_m3 += volumen_m3
+        return total_m3
+
+    def dump(self, filename=pathlib.Path, aux: dict = None):
+        with filename.open("w") as f:
+            f.write(f"Gesamtenergie {self.energie_total_J:0.1f} J\n")
+            f.write(f"Gesamtvolumen {self.berechnetes_volumen_total_m3:0.6f} m^3\n")
+            f.write("\n")
+
+            f.write("Schichtung\n")
+            f.write("Temperatur C Volumen m^3\n")
+            for [temp_C, volumen_m3] in self.packet_liste[::-1]:
+                f.write(f"{temp_C:0.1f} {volumen_m3:0.6f}\n")
+            f.write("\n")
+
+            if aux is not None:
+                f.write("Aux\n")
+                for key in sorted(aux):
+                    f.write(f"{key}={aux[key]}\n")
+
+    def austausch_zentralheizung(
+        self, temp_rein_C: float, volumen_rein_m3: float
+    ) -> float:
+        if volumen_rein_m3 < 1e-9:
+            return temp_rein_C
+        self.packet_liste.append((temp_rein_C, volumen_rein_m3))
+        self.packet_liste.sort()
+        verbleibendes_volumen_m3 = volumen_rein_m3
+        bezogene_energie = 0.0
+        while True:
+            tempC, volumen_m3 = self.packet_liste[0]
+            if volumen_m3 < verbleibendes_volumen_m3:
+                self.packet_liste.pop(0)
+                verbleibendes_volumen_m3 -= volumen_m3
+                bezogene_energie += tempC * volumen_m3
+                continue
+            # Das ist das letzte packet
+            bezogene_energie += tempC * verbleibendes_volumen_m3
+            nicht_bezogenes_volumen_m3 = volumen_m3 - verbleibendes_volumen_m3
+            self.packet_liste[0] = (tempC, nicht_bezogenes_volumen_m3)
+            return bezogene_energie / volumen_rein_m3
+
+    def austausch_warmwasser(self, energie_J=1.0):
+        """
+        Das Wasser wird zuoberst abgenommen.
+        """
+        kaltwasser_C = 15.0
+        if energie_J < 1e-9:
+            return kaltwasser_C
+        verbleibende_energie_J = energie_J
+        summe_bezogenes_volumen_m3 = 0.0
+        while True:
+            last_idx = len(self.packet_liste)
+            tempC, volumen_m3 = self.packet_liste[last_idx - 1]
+            temperaturhub_C = tempC - kaltwasser_C
+            packet_energie_J = (
+                volumen_m3 * temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER
+            )
+            if 0.0 <= packet_energie_J < verbleibende_energie_J:
+                self.packet_liste.pop()
+                verbleibende_energie_J -= packet_energie_J
+                summe_bezogenes_volumen_m3 += volumen_m3
+                continue
+
+            if temperaturhub_C < 0.0:
+                print(
+                    f"WARNUNG: Speicher {self.label}: temperaturhub_C={temperaturhub_C:0.6f}"
+                )
+            # Das ist das letzte packet
+            bezogenes_volumen_m3 = verbleibende_energie_J / (
+                temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER
+            )
+            summe_bezogenes_volumen_m3 += bezogenes_volumen_m3
+            nicht_bezogenes_volumen_m3 = volumen_m3 - bezogenes_volumen_m3
+            self.packet_liste[last_idx - 1] = (tempC, nicht_bezogenes_volumen_m3)
+            temperaturhub_C = energie_J / (
+                summe_bezogenes_volumen_m3 * WASSER_WAERMEKAP * DICHTE_WASSER
+            )
+            self.packet_liste.append((kaltwasser_C, summe_bezogenes_volumen_m3))
+            self.packet_liste.sort()
+            return temperaturhub_C + kaltwasser_C
+
+    def austausch_heizung(self, energie_J=1.0):
+        """
+        Das Wasser wird zuoberst abgenommen.
+        """
+        if energie_J < 1e-9:
+            return self.ruecklauf_bodenheizung_C
+        verbleibende_energie_J = energie_J
+        summe_bezogenes_volumen_m3 = 0.0
+
+        def get_idx() -> int:
+            sum_volumen_m3 = 0.0
+            for idx, (tempC, packet_volumen_m3) in enumerate(self.packet_liste):
+                sum_volumen_m3 += packet_volumen_m3
+                if sum_volumen_m3 > self.volumen_auslass_von_unten_m3:
+                    return idx
+            raise Exception("get_idx()")
+
+        packet_idx = get_idx()
+        while True:
+            tempC, volumen_m3 = self.packet_liste[packet_idx]
+            temperaturhub_C = tempC - self.ruecklauf_bodenheizung_C
+            packet_energie_J = (
+                volumen_m3 * temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER
+            )
+            if 0.0 <= packet_energie_J < verbleibende_energie_J:
+                if packet_idx == 0:
+                    print(f"Warnung: Speicher {self.label}: packet_idx={packet_idx}")
+                else:
+                    self.packet_liste.pop(packet_idx)
+                    verbleibende_energie_J -= packet_energie_J
+                    summe_bezogenes_volumen_m3 += volumen_m3
+                    packet_idx -= 1
+                    continue
+
+            if temperaturhub_C < 0.0:
+                print(
+                    f"WARNUNG: Speicher {self.label}: temperaturhub_C={temperaturhub_C:0.6f}"
+                )
+            # Das ist das letzte packet
+            bezogenes_volumen_m3 = verbleibende_energie_J / (
+                temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER
+            )
+            summe_bezogenes_volumen_m3 += bezogenes_volumen_m3
+            nicht_bezogenes_volumen_m3 = volumen_m3 - bezogenes_volumen_m3
+            self.packet_liste[packet_idx] = (tempC, nicht_bezogenes_volumen_m3)
+            temperaturhub_C = energie_J / (
+                summe_bezogenes_volumen_m3 * WASSER_WAERMEKAP * DICHTE_WASSER
+            )
+            self.packet_liste.append(
+                (self.ruecklauf_bodenheizung_C, summe_bezogenes_volumen_m3)
+            )
+            self.packet_liste.sort()
+            return temperaturhub_C + self.ruecklauf_bodenheizung_C
+
+    def _sort(self):
+        self.packet_liste.sort(key=lambda a: a[0], reverse=True)
+
+    def _gesamtvolumen_justieren(self):
+        """
+        wegen rundungsfehlern justieren
+        ==> Weg
+        """
         gesamt_volumen_m3 = 0.0
-        for temp_C, volumen_m3 in self.volumenliste:
+        for temp_C, volumen_m3 in self.packet_liste:
             gesamt_volumen_m3 += volumen_m3
         abweichung_m3 = self.totalvolumen_m3 - gesamt_volumen_m3
         if abs(abweichung_m3) > 1e-5:
@@ -292,18 +462,22 @@ class Speicher_dezentral:
             self.print()
             print(f"abweichung_m3 {abweichung_m3} zu gross")
             assert False
-        self.volumenliste[0] = (
-            self.volumenliste[0][0],
-            self.volumenliste[0][1] + abweichung_m3,
+        self.packet_liste[0] = (
+            self.packet_liste[0][0],
+            self.packet_liste[0][1] + abweichung_m3,
         )
         return gesamt_volumen_m3
 
     def _einfuellen(self, temp_rein_C=70.0, volumen_rein_m3=0.010):
+        """
+        Volumen mit gleicher Temperatur vereinen.
+        Praktisch kann dies nur bei 15 Grad vorkommen.
+        """
         # print(f'einfuellen  temp_rein_C = {temp_rein_C}, volumen_rein_m3 = {volumen_rein_m3}')
-        self.volumenliste_vorher_debug = self.volumenliste.copy()
+        self.volumenliste_vorher_debug = self.packet_liste.copy()
         volumenliste_neu = []
         bestehend_eingefuellt = False
-        for temp_C, volumen_m3 in self.volumenliste:
+        for temp_C, volumen_m3 in self.packet_liste:
             if abs(temp_C - temp_rein_C) < 1e-5 and not bestehend_eingefuellt:
                 volumenliste_neu.append((temp_C, volumen_m3 + volumen_rein_m3))
                 bestehend_eingefuellt = True
@@ -312,7 +486,7 @@ class Speicher_dezentral:
         if not bestehend_eingefuellt:
             volumenliste_neu.append((temp_rein_C, volumen_rein_m3))
             volumenliste_neu.sort(key=lambda a: a[0], reverse=True)
-        self.volumenliste = volumenliste_neu
+        self.packet_liste = volumenliste_neu
         """
         volumen_summe_m3 = 0.0
         for (temp_C, volumen_m3) in self.volumenliste:
@@ -339,7 +513,7 @@ class Speicher_dezentral:
         volumen_summe_m3 = 0.0
         genommen_summe_m3 = 0.0
         energie = 0.0
-        for temp_C, volumen_m3 in self.volumenliste:
+        for temp_C, volumen_m3 in self.packet_liste:
             volumen_summe_m3 += volumen_m3
             volumen_verbleiben_m3 = volumen_m3
             if (
@@ -356,7 +530,7 @@ class Speicher_dezentral:
             if volumen_verbleiben_m3 > 1e-8:  # zu kleine Volumen skipen
                 volumenliste_neu.append((temp_C, volumen_verbleiben_m3))
         temperatur_raus_C = energie / genommen_summe_m3
-        self.volumenliste = volumenliste_neu
+        self.packet_liste = volumenliste_neu
         self._gesamtvolumen_justieren()
         return temperatur_raus_C
 
@@ -380,27 +554,6 @@ class Speicher_dezentral:
         )
         return temperatur_raus_C
 
-    def warmwasserbezug(self, energie_J=1.0):
-        warmwassertemperatur_C = self.temperatur_bei_position(
-            position_raus_anteil_von_unten=1.0
-        )
-        kaltwasser_C = 15.0
-        temperaturhub_C = warmwassertemperatur_C - kaltwasser_C
-        assert temperaturhub_C >= 0.0
-        volumen_m3 = energie_J / (temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER)
-        self.austauschen(
-            temp_rein_C=kaltwasser_C,
-            position_raus_anteil_von_unten=1.0,
-            volumen_rein_m3=volumen_m3,
-        )
-
-        self.out_warmwasser_anforderung = (
-            self.temperatur_bei_position(position_raus_anteil_von_unten=1.0)
-            < TEMPERATURGRENZE_BRAUCHWASSER_C
-        )
-
-        return warmwassertemperatur_C, volumen_m3
-
     def heizungbezug(self, energie_J=1.0, volumen_m3=0.001):
         return self.energiebezug(
             energie_J=energie_J,
@@ -412,7 +565,7 @@ class Speicher_dezentral:
         temperaturen = []
         index = 0
         volumen_summe_m3 = 0.0
-        for temp_C, volumen_m3 in self.volumenliste:
+        for temp_C, volumen_m3 in self.packet_liste:
             volumen_summe_m3 += volumen_m3
             while (
                 volumen_summe_m3 > self.totalvolumen_m3 / temperaturen_i * index
@@ -427,7 +580,7 @@ class Speicher_dezentral:
         temperatur_C_array = []
         volumen_m3_array = []
         volumen_m3_summe = 0.0
-        for temp_C, volumen_m3 in self.volumenliste[::-1]:
+        for temp_C, volumen_m3 in self.packet_liste[::-1]:
             temperatur_C_array.append(temp_C)
             volumen_m3_array.append(volumen_m3_summe)
             volumen_m3_summe += volumen_m3
@@ -462,7 +615,7 @@ class Speicher_dezentral:
             leistung_warmwasser_W = (
                 leistung_warmwasser_W * self.verbrauchsfaktor_grossfamilie
             )
-            self.warmwasserbezug(energie_J=leistung_warmwasser_W * timestep_s)
+            self.austausch_warmwasser(energie_J=leistung_warmwasser_W * timestep_s)
 
         self.verlustleistung_W = (
             self._verlustleistung_W()
