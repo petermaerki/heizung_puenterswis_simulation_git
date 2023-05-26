@@ -2,8 +2,11 @@ import os
 import pathlib
 
 from util_modell import Modell
+from util_modell_fernleitung import PlotFernleitung
+from util_modell_speicher_dezentral import PlotEnergiereserve, PlotSpeicherSchichtung
 from util_modell_speichers import PlotSpeichersAnforderungen
-from util_stimuly import Stimuli, stimuli_wintertag
+from util_modell_zentralheizung import PlotFluss
+from util_stimuli import Stimuli, stimuli_sommertag, stimuli_wintertag
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).resolve().parent
 DIRECTORY_TMP = DIRECTORY_OF_THIS_FILE / "tmp"
@@ -41,12 +44,14 @@ def main():
 
     modell = simulation.modell
 
-    speicher = simulation.modell.speichers.get_speicher("Haus 3 Grossfamilie")
+    speicher = modell.speichers.get_speicher("Haus 3 Grossfamilie")
 
     simulation.plots = (
-        # PlotSpeicherSchichtung(modell=simulation.modell, speicher=speicher),
-        # PlotEnergiereserve(modell=simulation.modell, speicher=speicher),
-        PlotSpeichersAnforderungen(speichers=simulation.modell.speichers),
+        PlotSpeicherSchichtung(modell=modell, speicher=speicher),
+        PlotEnergiereserve(modell=modell, speicher=speicher),
+        PlotSpeichersAnforderungen(speichers=modell.speichers),
+        PlotFernleitung(fernleitung=modell.fernleitung_hot),
+        PlotFluss(zentralheizung=modell.zentralheizung),
     )
     simulation.run()
 

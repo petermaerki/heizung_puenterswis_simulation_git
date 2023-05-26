@@ -5,14 +5,14 @@ import papermill
 
 import util_modell_speicher_dezentral
 import util_modell_zentralheizung
-import util_stimuly
+import util_stimuli
 from util_simulation import Simulation
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).resolve().parent
 DIRECTORY_REPORTS = DIRECTORY_OF_THIS_FILE / "reports"
 
 
-def plot_images(stimuli: util_stimuly.Stimuli, directory: pathlib.Path):
+def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
     simulation = Simulation(stimuli=stimuli)
 
     simulation.plots = (
@@ -49,7 +49,7 @@ def plot_images(stimuli: util_stimuly.Stimuli, directory: pathlib.Path):
     simulation.plot()
 
 
-def plot_notebooks(stimuli: util_stimuly.Stimuli, directory: pathlib.Path):
+def plot_notebooks(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
     # https://papermill.readthedocs.io/en/latest/
 
     for notebook in DIRECTORY_OF_THIS_FILE.glob("report_.*.ipynb"):
@@ -64,7 +64,7 @@ def plot_notebooks(stimuli: util_stimuly.Stimuli, directory: pathlib.Path):
         )
 
 
-def build_report(stimuli: util_stimuly.Stimuli):
+def build_report(stimuli: util_stimuli.Stimuli):
     directory = DIRECTORY_REPORTS / stimuli.label
     directory.mkdir(parents=True, exist_ok=True)
     os.chdir(directory)
@@ -88,7 +88,7 @@ def remove_files():
 
 def main():
     remove_files()
-    for stimuli in util_stimuly.ALL:
+    for stimuli in util_stimuli.ALL:
         build_report(stimuli)
 
 

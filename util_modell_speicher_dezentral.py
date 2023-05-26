@@ -7,6 +7,7 @@ from util_konstanten import DICHTE_WASSER, WASSER_WAERMEKAP
 
 if typing.TYPE_CHECKING:
     from util_modell import Modell
+    from util_modell_fernleitung import Fernleitung
     from util_modell_zentralheizung import Zentralheizung
 
 TEMPERATURGRENZE_BRAUCHWASSER_C = (
@@ -32,8 +33,8 @@ class PlotSpeicher:
     ):
         self.time_array_s.append(time_s)
         self.temperaturen_C.append(self.speicher.temperaturprofil())
-        self.fernwaerme_hot_C.append(self.speicher.in_fernwaerme_hot_C)
-        self.fernwaerme_cold_C.append(self.speicher.out_fernwaerme_cold_C)
+        self.fernwaerme_hot_C.append(self.speicher.in_wasser_C)
+        self.fernwaerme_cold_C.append(self.speicher.out_wasser_C)
         self.energie_verfuegbar_brauchwasser_kWh.append(
             self.speicher._waermeintegral_J(
                 temperaturgrenze_C=TEMPERATURGRENZE_BRAUCHWASSER_C,
@@ -238,8 +239,8 @@ class Speicher_dezentral:
         )  # self.teilspeicher_i * [(startTempC, self.teilvolumen_m3)]
         self.volumenliste.append((startTempC, self.totalvolumen_m3))
         self.volumenliste_vorher_debug = []
-        self.in_fernwaerme_hot_C = 0.0
-        self.out_fernwaerme_cold_C = 0.0
+        self.in_wasser_C = 0.0
+        self.out_wasser_C = 0.0
         self.warmwassernutzung = True
         self.heizungnutzung = True
         self.out_warmwasser_anforderung = False
@@ -448,8 +449,8 @@ class Speicher_dezentral:
 
     def run(self, timestep_s: float, time_s: float, modell: "Modell"):
         if modell.zentralheizung.fernwaermepumpe_on:
-            self.out_fernwaerme_cold_C = self.austauschen(
-                temp_rein_C=self.in_fernwaerme_hot_C,
+            self.out_wasser_C = self.austauschen(
+                temp_rein_C=self.in_wasser_C,
                 volumen_rein_m3=self.out_fernwaermefluss_m3_pro_s * timestep_s,
                 position_raus_anteil_von_unten=0.0,
             )
@@ -480,5 +481,5 @@ class Speicher_dezentral:
             )
             self.heizungbezug(energie_J=leistung_W * timestep_s)
 
-    def update_input(self, zentralheizung: "Zentralheizung"):
-        self.in_fernwaerme_hot_C = zentralheizung.out_fernwaerme_hot_C
+    def update_input(self, fernleitung_hot: "Fernleitung"):
+        self.in_wasser_C = fernleitung_hot.out_wasser_C

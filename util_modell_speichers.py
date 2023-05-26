@@ -7,8 +7,9 @@ from util_modell_speicher_dezentral import Speicher_dezentral
 
 if typing.TYPE_CHECKING:
     from util_modell import Modell
+    from util_modell_fernleitung import Fernleitung
     from util_modell_zentralheizung import Zentralheizung
-    from util_stimuly import Stimuli
+    from util_stimuli import Stimuli
 
 
 class Speichers:
@@ -16,6 +17,9 @@ class Speichers:
         self,
         stimuli: "Stimuli",
     ):
+        self.in_fluss_m3_pro_s = 0.0
+        self.out_fluss_m3_pro_s = 0.0
+
         self.speichers: typing.List[
             Speicher_dezentral
         ] = (  # Werte gemaess Revisionsplan 1. Etappe 2008-08-20
@@ -83,9 +87,10 @@ class Speichers:
                 return speicher
         raise Exception(f"Speicher '{label}' nicht gefunden!")
 
-    def update_input(self, zentralheizung: "Zentralheizung"):
+    def update_input(self, fernleitung_hot: "Fernleitung"):
         for speicher in self.speichers:
-            speicher.update_input(zentralheizung)
+            speicher.update_input(fernleitung_hot=fernleitung_hot)
+        self.in_fluss_m3_pro_s = fernleitung_hot.out_fluss_m3_pro_s
 
     def run(self, timestep_s: float, time_s: float, modell: "Modell"):
         for speicher in self.speichers:
@@ -94,6 +99,9 @@ class Speichers:
                 time_s=time_s,
                 modell=modell,
             )
+
+        self.out_wasser_C = self.fernwaerme_cold_avg_C
+        self.out_fluss_m3_pro_s = self.in_fluss_m3_pro_s
 
     @property
     def warmwasserladung_angefordert(self) -> bool:
@@ -115,9 +123,7 @@ class Speichers:
         for speicher in self.speichers:
             # self.fernwaerme_cold_C.append(speicher.fernwaerme_cold_C)
             # self.fernwaermefluss_m3_pro_s.append(speicher.fernwaermefluss_m3_pro_s)
-            mischsumme += (
-                speicher.out_fernwaerme_cold_C * speicher.out_fernwaermefluss_m3_pro_s
-            )
+            mischsumme += speicher.out_wasser_C * speicher.out_fernwaermefluss_m3_pro_s
         return mischsumme / self.fernwaerme_totalfluss_m3_pro_s
 
 

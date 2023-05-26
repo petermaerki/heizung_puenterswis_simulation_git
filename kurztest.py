@@ -10,7 +10,7 @@ from util_modell_speicher_dezentral import (
 )
 from util_modell_zentralheizung import PlotZentralheizung, Zentralheizung
 from util_simulation import Simulation
-from util_stimuly import StimuliWintertag
+from util_stimuli import StimuliWintertag
 
 
 class KurzZentralheizung:
