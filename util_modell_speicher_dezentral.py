@@ -193,6 +193,11 @@ class PlotSpeicherSchichtung:
         )
 
     def plot(self):
+        if False:
+            self.speicher.dump(
+                pathlib.Path(f"tmp_dump_speicher_{self.speicher.label}.txt")
+            )
+
         # TODO: Gesamtvolument berechen und überprüfen, ob der Speicher noch gleich voll ist.
 
         min_C = 10
@@ -254,7 +259,6 @@ class Speicher_dezentral:
         self.out_wasser_C = 0.0
         self.warmwassernutzung = True
         self.heizungnutzung = True
-        self.out_warmwasser_anforderung = False
         self.verlustleistung_W = False
 
     def reset(self, packets: Tuple[Tuple[float, float]]) -> None:
@@ -312,10 +316,16 @@ class Speicher_dezentral:
             total_m3 += volumen_m3
         return total_m3
 
+    @property
+    def out_warmwasser_anforderung(self) -> bool:
+        tempC, volumen_m3 = self.packet_liste[0]
+        return tempC < TEMPERATURGRENZE_BRAUCHWASSER_C  # TODO(peter): +2.0
+
     def warnung_falls_volumenveraenderung(self) -> None:
-        volumenabnahme_m3 = self.totalvolumen_m3 - self.berechnetes_volumen_total_m3
-        if abs(volumenabnahme_m3) > 1e-9:
-            print(f"WARNUNG: volumenabnahme_m3={volumenabnahme_m3:0.6f} m3\n")
+        if False:
+            volumenabnahme_m3 = self.totalvolumen_m3 - self.berechnetes_volumen_total_m3
+            if abs(volumenabnahme_m3) > 1e-9:
+                print(f"WARNUNG: volumenabnahme_m3={volumenabnahme_m3:0.6f} m3\n")
 
     def dump(self, filename=pathlib.Path, aux: dict = None):
         with filename.open("w") as f:
@@ -344,7 +354,7 @@ class Speicher_dezentral:
     ) -> float:
         if volumen_rein_m3 < 1e-9:
             return temp_rein_C
-        self.packet_liste.insert(0, (temp_rein_C, volumen_rein_m3))
+        self.packet_liste.append((temp_rein_C, volumen_rein_m3))
         self.packet_liste.sort(reverse=True)
         verbleibendes_volumen_m3 = volumen_rein_m3
         bezogene_energie = 0.0
@@ -363,7 +373,7 @@ class Speicher_dezentral:
             self.warnung_falls_volumenveraenderung()
             return bezogene_energie / volumen_rein_m3
 
-    def austausch_warmwasser(self, energie_J=1.0):
+    def austausch_warmwasser(self, energie_J=1.0) -> None:
         """
         Das Wasser wird zuoberst abgenommen.
         """
@@ -397,13 +407,11 @@ class Speicher_dezentral:
                 nicht_bezogenes_volumen_m3 = volumen_m3 - bezogenes_volumen_m3
                 self.packet_liste[0] = (tempC, nicht_bezogenes_volumen_m3)
 
-            temperaturhub_C = energie_J / (
-                summe_bezogenes_volumen_m3 * WASSER_WAERMEKAP * DICHTE_WASSER
-            )
             self.packet_liste.insert(0, (kaltwasser_C, summe_bezogenes_volumen_m3))
             self.packet_liste.sort(reverse=True)
+
             self.warnung_falls_volumenveraenderung()
-            return temperaturhub_C + kaltwasser_C
+            return
 
     def austausch_heizung(self, energie_J=1.0):
         """

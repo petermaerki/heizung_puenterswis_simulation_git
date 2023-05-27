@@ -7,5 +7,3 @@ Temperatur C Volumen m^3
 60.0 0.590000
 15.0 0.000032
 
-Aux
-out_wasser_C=90.000

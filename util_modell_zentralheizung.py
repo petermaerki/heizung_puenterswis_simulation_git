@@ -204,10 +204,27 @@ class Zentralheizung:
 
         if modell.stimuli.umgebungstemperatur_C < 20.0:
             self.fernwaermepumpe_on = True
-            erhoehung_waermeverluste_C = 5.0
+
+            # geschätzer Verbrauch der Siedlung
+            kalt_C = -14.0
+            warm_C = 20.0
+            leistung_warm_W = 10.0  # empirisch und aufgrund von "ca 5000W pro Haus"
+            leistung_kalt_W = 4700.0  # empirisch und aufgrund von "ca 5000W pro Haus"
+            leistung_W = (warm_C - self.stimuli.umgebungstemperatur_C) / (
+                warm_C - kalt_C
+            ) * (leistung_kalt_W - leistung_warm_W) + leistung_warm_W
+            leistung_W = leistung_W * 15.0
+
+            temperaturhub_fuer_leistung_C = leistung_W / (
+                modell.speichers.fernwaerme_totalfluss_m3_pro_s
+                * WASSER_WAERMEKAP
+                * DICHTE_WASSER
+            )
+            erhoehung_reserve_C = 5.0
             self.out_wasser_C = (
                 modell.zentralheizung.heizkurve_heizungswasser_C
-                + erhoehung_waermeverluste_C
+                + temperaturhub_fuer_leistung_C
+                + erhoehung_reserve_C
             )
             return
         self.out_wasser_C = 0.0

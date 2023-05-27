@@ -44,15 +44,21 @@ def main():
 
     modell = simulation.modell
 
-    speicher = modell.speichers.get_speicher("Haus 3 Grossfamilie")
-
-    simulation.plots = (
-        PlotSpeicherSchichtung(modell=modell, speicher=speicher),
-        PlotEnergiereserve(modell=modell, speicher=speicher),
+    simulation.plots = [
         PlotSpeichersAnforderungen(speichers=modell.speichers),
         PlotFernleitung(fernleitung=modell.fernleitung_hot),
         PlotFluss(zentralheizung=modell.zentralheizung),
-    )
+    ]
+    for speicher in (
+        modell.speichers.get_speicher("Haus 1 Normal"),
+        modell.speichers.get_speicher("Haus 2 Ferien"),
+        modell.speichers.get_speicher("Haus 3 Grossfamilie"),
+    ):
+        simulation.plots.append(
+            PlotSpeicherSchichtung(modell=modell, speicher=speicher)
+        )
+        simulation.plots.append(PlotEnergiereserve(modell=modell, speicher=speicher))
+
     simulation.run()
 
     simulation.plot()

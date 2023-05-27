@@ -50,11 +50,8 @@ def test_b():
     speicher.reset(packets=((90.0, 0.1),))
     label = "test_b"
     speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
-    out_wasser_C = speicher.austausch_warmwasser(energie_J=10000.0)
-    speicher.dump(
-        filename=DIRECTORY_RESULTS / f"{label}-nachher1.txt",
-        aux=dict(out_wasser_C=f"{out_wasser_C:0.3f}"),
-    )
+    speicher.austausch_warmwasser(energie_J=10000.0)
+    speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-nachher1.txt")
 
 
 def test_c():
@@ -63,11 +60,8 @@ def test_c():
     speicher.reset(packets=((90.0, 0.001),))
     label = "test_c"
     speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
-    out_wasser_C = speicher.austausch_warmwasser(energie_J=1e6)
-    speicher.dump(
-        filename=DIRECTORY_RESULTS / f"{label}-nachher1.txt",
-        aux=dict(out_wasser_C=f"{out_wasser_C:0.3f}"),
-    )
+    speicher.austausch_warmwasser(energie_J=1e6)
+    speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-nachher1.txt")
 
 
 def test_d():
