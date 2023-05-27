@@ -61,7 +61,7 @@ def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
 def plot_notebooks(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
     # https://papermill.readthedocs.io/en/latest/
 
-    for notebook in DIRECTORY_OF_THIS_FILE.glob("report_.*.ipynb"):
+    for notebook in DIRECTORY_OF_THIS_FILE.glob("report_*.ipynb"):
         papermill.execute_notebook(
             input_path=notebook,
             output_path=directory / notebook.name,

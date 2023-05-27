@@ -26,7 +26,7 @@ class DumpSchichtung:
     def plot(self, directory: pathlib.Path):
         self.speicher.dump(directory / f"schichtung_{self.speicher.label}.txt")
         vorher, nachher = self.speicher.purge_schichten()
-        print(f"{self.speicher.label} {vorher}->{nachher}")
+        # print(f"{self.speicher.label} {vorher}->{nachher}")
 
 
 class PlotSpeicher:
