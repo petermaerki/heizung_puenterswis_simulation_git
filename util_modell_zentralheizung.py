@@ -183,6 +183,7 @@ class Zentralheizung:
     def _run(self, timestep_s: float, time_s: float, modell: "Modell"):
         warmwasser_rampe_rauf_s = 4.0 * 3600
         warmwasser_plateau_zeit_s = 5.0 * 3600
+        self.fernwaermepumpe_on = False
 
         if self.warmwasserladung_start_s is None:
             if self.in_warmwasserladung_angefordert:

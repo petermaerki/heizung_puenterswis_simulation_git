@@ -39,13 +39,14 @@ class Simulation:
 
 def main():
     DIRECTORY_TMP.mkdir(parents=True, exist_ok=True)
-    simulation = Simulation(stimuli=stimuli_wintertag)
+    simulation = Simulation(stimuli=stimuli_sommertag)
 
     modell = simulation.modell
 
     simulation.plots = [
         PlotSpeichersAnforderungen(speichers=modell.speichers),
         PlotFernleitung(fernleitung=modell.fernleitung_hot),
+        PlotFernleitung(fernleitung=modell.fernleitung_cold),
         PlotFluss(zentralheizung=modell.zentralheizung),
     ]
     for speicher in (
