@@ -11,6 +11,8 @@ jupyterlab_server
 matplotlib
 matplotlib-inline
 papermill
+ipympl
+notebook
 
 ### Formatting, static code analysis, unit tests
 black

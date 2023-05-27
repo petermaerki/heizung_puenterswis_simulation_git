@@ -51,6 +51,7 @@
 		// 	"black"
 		// ],
 		// "base", "forest", "dark", "default", "neutral"
+		"jupyter.widgetScriptSources": ["jsdelivr.com", "unpkg.com"],
 		"markdown-mermaid.lightModeTheme": "base",
 		"markdown-mermaid.darkModeTheme": "dark",
 		"files.exclude": {
