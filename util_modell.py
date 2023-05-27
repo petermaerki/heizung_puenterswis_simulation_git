@@ -1,5 +1,5 @@
 import pathlib
-import typing
+from typing import TYPE_CHECKING, Any, Callable, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,7 +10,7 @@ from util_modell_speichers import Speichers
 from util_modell_zentralheizung import Zentralheizung
 from util_stimuli import Stimuli
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from util_simulation import Stimulus
 
 
@@ -43,198 +43,90 @@ class Modell:
         self.fernleitung_cold.run(timestep_s=timestep_s, time_s=time_s, modell=self)
 
 
-class IntegralBase:
-    def __init__(self):
-        self.value = 0.0
-
-    @property
-    def label(self) -> str:
-        1 / 0
-
-    def add(self, incr: float) -> None:
-        self.value += incr
-
-    def append_plot(
-        self,
-        timestep_s: float,
-        time_s: float,
-    ):
-        raise NotImplementedError("Please override")
-
-
-class IntegralFernleitung(IntegralBase):
-    def __init__(self, fernleitung: Fernleitung):
-        super().__init__()
-        self.fernleitung = fernleitung
-
-    @property
-    def label(self) -> str:
-        return self.fernleitung.label
-
-    def append_plot(
-        self,
-        timestep_s: float,
-    ):
-        self.add(self.fernleitung.verlustleistung_W * timestep_s / 3600.0 / 1000.0)
-
-
-class IntegralSpeicher(IntegralBase):
-    def __init__(self, speicher: Speicher_dezentral):
-        super().__init__()
-        self.speicher = speicher
-
-    @property
-    def label(self) -> str:
-        return self.speicher.label
-
-    def append_plot(
-        self,
-        timestep_s: float,
-    ):
-        self.add(self.speicher.verlustleistung_W * timestep_s / 3600.0 / 1000.0)
-
-
 class Integrals:
-    def __init__(self, integrals: typing.List[IntegralBase]):
-        self.integrals = integrals
+    def __init__(
+        self,
+        objs: List[str],
+        f_value: Callable[[Any, float], float],
+        f_label: Callable[[Any], str],
+    ):
+        self.objs = objs
+        self.f_value = f_value
+        self.labels = [f_label(o) for o in self.objs]
+        self.list_integrals = [0.0 for o in self.objs]
         self.list_values = []
 
     @property
     def data(self):
         return self.list_values
 
+    def append_plot(self, timestep_s: float):
+        for i, o in enumerate(self.objs):
+            self.list_integrals[i] += self.f_value(o, timestep_s)
+        self.list_values.append(self.list_integrals.copy())
+
     @property
-    def labels(self) -> str:
-        return [i.label for i in self.integrals]
-
-    def append_plot(
-        self,
-        timestep_s: float,
-    ):
-        for i in self.integrals:
-            i.append_plot(timestep_s=timestep_s)
-        self.list_values.append([i.value for i in self.integrals])
-
-        # TODO(hans)
-
-
-# def summe_ueber_integrale(integrals: Integrals):
-#     sum_integral = None
-#     for i, list in enumerate(integrals.data):
-#         if sum_integral is None:
-#             sum_integral = integral.copy()
-#         else:
-#             for i, v in enumerate(sum_integral):
-#                 sum_integral[i] = sum_integral[i] + v
-#     return sum_integral
-
-# sum_integral = None
-# for integral in integrals.data:
-#     if sum_integral is None:
-#         sum_integral = integral.copy()
-#     else:
-#         for i, v in enumerate(sum_integral):
-#             sum_integral[i] = sum_integral[i] + v
-# return sum_integral
+    def summe(self) -> List[float]:
+        sum_integral = []
+        for i, list in enumerate(self.data):
+            sum_integral.append(sum(list))
+        return sum_integral
 
 
 class PlotVerluste:
     def __init__(self, modell: "Modell"):
         self.modell = modell
         self.time_array_s = []
-        self.fernleitung_kWh = Integrals(
-            integrals=[
-                IntegralFernleitung(self.modell.fernleitung_cold),
-                IntegralFernleitung(self.modell.fernleitung_hot),
-            ]
-        )
-        self.liste_speicher_kWh = Integrals(
-            integrals=[IntegralSpeicher(s) for s in self.modell.speichers.speichers]
-        )
-        # self.liste_speicher_integral_kWh = [0.0 for _ in self.modell.speichers.speichers]
-        # self.energie_verfuegbar_brauchwasser_kWh = []
-        # self.energie_verfuegbar_heizung_kWh = []
 
-    def append_plot(
-        self,
-        timestep_s: float,
-        time_s: float,
-    ):
+        def fernleitung_value(fernleitung: Fernleitung, timestep_s: float) -> float:
+            return fernleitung.verlustleistung_W * timestep_s / 3600.0 / 1000.0
+
+        def fernleitung_label(fernleitung: Fernleitung) -> float:
+            return fernleitung.label
+
+        self.fernleitung_kWh = Integrals(
+            objs=[self.modell.fernleitung_cold, self.modell.fernleitung_hot],
+            f_value=fernleitung_value,
+            f_label=fernleitung_label,
+        )
+
+        def speicher_value(speicher: Speicher_dezentral, timestep_s: float) -> float:
+            return speicher.verlustleistung_W * timestep_s / 3600.0 / 1000.0
+
+        def speicher_label(speicher: Speicher_dezentral) -> float:
+            return speicher.label
+
+        self.speichers_kWh = Integrals(
+            objs=self.modell.speichers.speichers,
+            f_value=speicher_value,
+            f_label=speicher_label,
+        )
+
+    def append_plot(self, timestep_s: float, time_s: float):
         self.time_array_s.append(time_s)
         self.fernleitung_kWh.append_plot(timestep_s=timestep_s)
-        self.liste_speicher_kWh.append_plot(timestep_s=timestep_s)
-
-        # try:
-        #     last = self.liste_speicher_kWh[-1]
-        # except IndexError:
-        #     last = [0.0 for s in self.modell.speichers.speichers]
-        # new_values = []
-        # for i, speicher in enumerate(self.modell.speichers.speichers):
-        #     integral_kWh = last[i]
-        #     integral_kWh += speicher.verlustleistung_W * timestep_s / 3600.0 / 1000.0
-        #     new_values.append(integral_kWh)
-        # self.liste_speicher_kWh.append(new_values)
-
-        # self.liste_speicher.append(
-        #     [
-        #         s.verlustleistung_W * timestep_s / 3600.0 / 1000.0
-        #         for s in self.modell.speichers.speichers
-        #     ]
-        # )
-        # self.energie_verfuegbar_brauchwasser_kWh.append(
-        #     self.speicher._waermeintegral_J(
-        #         temperaturgrenze_C=TEMPERATURGRENZE_BRAUCHWASSER_C,
-        #         entnahmehoehe_anteil_von_unten=1.0,
-        #     )
-        #     / (3600 * 1000)
-        # )
-        # self.energie_verfuegbar_heizung_kWh.append(
-        #     self.speicher._waermeintegral_J(
-        #         temperaturgrenze_C=self.modell.zentralheizung.heizkurve_heizungswasser_C,
-        #         entnahmehoehe_anteil_von_unten=0.68,
-        #     )
-        #     / (3600 * 1000)
-        # )
+        self.speichers_kWh.append_plot(timestep_s=timestep_s)
 
     def plot(self, directory: pathlib.Path):
         fig, ax = plt.subplots()
-        # ax.plot(
-        #     np.array(self.time_array_s) / 3600,
-        #     self.energie_verfuegbar_brauchwasser_kWh,
-        #     linestyle="solid",
-        #     linewidth=2,
-        #     color="red",
-        #     alpha=0.95,
-        #     label="Brauchwasser verfuegbar max",
-        # )
-        # ax.plot(
-        #     np.array(self.time_array_s) / 3600,
-        #     self.energie_verfuegbar_heizung_kWh,
-        #     linestyle="solid",
-        #     linewidth=2,
-        #     color="black",
-        #     alpha=0.95,
-        #     label="Heizung verfuegbar max",
-        # )
         ax.plot(
             np.array(self.time_array_s) / 3600,
-            self.liste_speicher_kWh.data,
+            self.speichers_kWh.data,
             linestyle="solid",
             linewidth=1,
             color="green",
-            alpha=0.95,
-            label=self.liste_speicher_kWh.labels,
+            alpha=0.5
+            # label=self.speichers_kWh.labels,
         )
-        # TODO(hans)
-        # ax.plot(
-        #     np.array(self.time_array_s) / 3600,
-        #     summe_ueber_integrale(self.liste_speicher_kWh),
-        #     linestyle="solid",
-        #     linewidth=2,
-        #     color="green",
-        #     alpha=0.95,
-        #     label="Häuser",
-        # )
+        ax.plot(
+            np.array(self.time_array_s) / 3600,
+            self.speichers_kWh.summe,
+            linestyle="solid",
+            linewidth=2,
+            color="green",
+            alpha=0.95,
+            label="Häuser",
+        )
         ax.plot(
             np.array(self.time_array_s) / 3600,
             self.fernleitung_kWh.data,
