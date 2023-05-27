@@ -51,7 +51,7 @@ class PlotFluss:
             plt.show()
             return
         plt.savefig(directory / f"zentralheizung_fluss.png")
-        plt.clf()
+        plt.close()
 
 
 class PlotZentralheizung:
@@ -115,7 +115,7 @@ class PlotZentralheizung:
             plt.show()
             return
         plt.savefig(directory / "zentralheizung.png")
-        plt.clf()
+        plt.close()
 
 
 class Zentralheizung:

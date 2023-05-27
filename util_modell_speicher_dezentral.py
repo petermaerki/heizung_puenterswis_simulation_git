@@ -1,5 +1,5 @@
 import pathlib
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,9 +12,21 @@ if TYPE_CHECKING:
     from util_modell_fernleitung import Fernleitung
     from util_modell_zentralheizung import Zentralheizung
 
-TEMPERATURGRENZE_BRAUCHWASSER_C = (
-    50.0  # diese Temperatur wird fuer Brauchwasser mindestens gebraucht
-)
+TEMPERATURGRENZE_BRAUCHWASSER_C = 50.0
+"""Diese Temperatur wird fuer Brauchwasser mindestens gebraucht"""
+
+
+class DumpSchichtung:
+    def __init__(self, speicher: "Speicher_dezentral"):
+        self.speicher = speicher
+
+    def append_plot(self, timestep_s: float, time_s: float):
+        pass
+
+    def plot(self, directory: pathlib.Path):
+        self.speicher.dump(directory / f"schichtung_{self.speicher.label}.txt")
+        vorher, nachher = self.speicher.purge_schichten()
+        print(f"{self.speicher.label} {vorher}->{nachher}")
 
 
 class PlotSpeicher:
@@ -102,7 +114,7 @@ class PlotSpeicher:
         ax.set(
             xlabel="time (h)",
             ylabel="Temperature (C)",
-            title="Speicher Temperaturverlauf " + self.speicher.label,
+            title="Speicher Temperaturverlauf " + self.speicher.description,
         )
         ax2.set(ylabel="Energie kWh")
         ax.legend()
@@ -112,7 +124,7 @@ class PlotSpeicher:
             plt.show()
             return
         plt.savefig(directory / f"speicher_temperaturverlauf_{self.speicher.label}.png")
-        plt.clf()
+        plt.close()
 
 
 class PlotEnergiereserve:
@@ -167,7 +179,7 @@ class PlotEnergiereserve:
         ax.set(
             xlabel="time (h)",
             ylabel="Energie kWh",
-            title="Speicher verfügbare Energie " + self.speicher.label,
+            title="Speicher verfügbare Energie " + self.speicher.description,
         )
         ax.legend()
         ax.grid()
@@ -175,7 +187,7 @@ class PlotEnergiereserve:
             plt.show()
             return
         plt.savefig(directory / f"energiereserve_{self.speicher.label}.png")
-        plt.clf()
+        plt.close()
 
 
 class PlotSpeicherSchichtung:
@@ -224,20 +236,27 @@ class PlotSpeicherSchichtung:
         # plt.ylabel("Speicherhöhe")
         plt.yticks([0, 1], ("unten", "oben"))
         plt.xlabel("time (h)")
-        plt.title("Speicher Temperaturschichtung " + self.speicher.label)
+        plt.title("Speicher Temperaturschichtung " + self.speicher.description)
         # ax.set(xlabel="time (h)", ylabel="Temperature C", title=self.speicher.label)
         if directory is None:
             plt.show()
             return
         plt.savefig(directory / f"schichtung__{self.speicher.label}.png")
-        plt.clf()
+        plt.close()
+
+
+PURGE_COUNTER = 10
+"""
+Jedes zehnte Mal:Schichtung purge.
+"""
 
 
 class Speicher_dezentral:
     def __init__(
         self,
         stimuli: "Stimuli",
-        label="XY",
+        label: str = "dummy_speicher",
+        description: str = "Dummy Speicher",
         fernwaermefluss_liter_pro_h=150.0,
         startTempC=30.0,
         totalvolumen_m3=0.69,
@@ -245,9 +264,9 @@ class Speicher_dezentral:
     ):
         self.stimuli = stimuli
         self.label = label
+        self.description = description
         self.startTempC = startTempC
         self.out_fernwaermefluss_m3_pro_s = fernwaermefluss_liter_pro_h / 1000 / 3600
-        # self.teilspeicher_i = 10
         self.totalvolumen_m3 = totalvolumen_m3
         self.ruecklauf_bodenheizung_C = 24.0
         self.anteil_auslass_von_unten = 0.68
@@ -260,7 +279,7 @@ class Speicher_dezentral:
         # self.teilvolumen_m3 = 0.69 / self.teilspeicher_i
         self.verbrauchsfaktor_grossfamilie = verbrauchsfaktor_grossfamilie
         assert self.verbrauchsfaktor_grossfamilie > 1e-3
-        self.packet_liste = [(startTempC, self.totalvolumen_m3)]
+        self.packet_liste = [[startTempC, self.totalvolumen_m3]]
         """ self.teilspeicher_i * [(startTempC, self.teilvolumen_m3)] """
         self.volumenliste_vorher_debug = []
         self.in_wasser_C = 0.0
@@ -268,6 +287,7 @@ class Speicher_dezentral:
         self.warmwassernutzung = True
         self.heizungnutzung = True
         self.verlustleistung_W = False
+        self.purge_counter = PURGE_COUNTER
 
     def reset(self, packets: Tuple[Tuple[float, float]]) -> None:
         self.packet_liste = []
@@ -275,9 +295,9 @@ class Speicher_dezentral:
         for temp_C, vol_m3 in packets:
             assert isinstance(temp_C, float)
             assert isinstance(vol_m3, float)
-            self.packet_liste.append((temp_C, vol_m3))
+            self.packet_liste.append([temp_C, vol_m3])
             volumen_m3 += vol_m3
-        self.packet_liste.append((self.startTempC, self.totalvolumen_m3 - volumen_m3))
+        self.packet_liste.append([self.startTempC, self.totalvolumen_m3 - volumen_m3])
         self.packet_liste.sort(reverse=True)
 
     def _waermeintegral_J(
@@ -305,7 +325,7 @@ class Speicher_dezentral:
         return energie_J
 
     def print(self):
-        for [temp_C, volumen_m3] in self.packet_liste:
+        for temp_C, volumen_m3 in self.packet_liste:
             print(
                 f"Schichtung vom Speicher: Temperatur C: {temp_C:0.1f}, Volumen m^3: {volumen_m3:0.6f}"
             )
@@ -334,6 +354,27 @@ class Speicher_dezentral:
         if abs(volumenabnahme_m3) > 1e-9:
             print(f"WARNUNG: volumenabnahme_m3={volumenabnahme_m3:0.6f} m3\n")
 
+    def purge_schichten(self) -> Tuple[int, int]:
+        liste_vorher = self.packet_liste
+        self.packet_liste = []
+        last_entry = [1e12, 0.0]
+        for packet_temp_C, packet_volumen_m3 in liste_vorher:
+            if abs(last_entry[0] - packet_temp_C) < 0.01:
+                last_entry[1] += packet_volumen_m3
+                continue
+            last_entry = [packet_temp_C, packet_volumen_m3]
+            self.packet_liste.append(last_entry)
+        return len(liste_vorher), len(self.packet_liste)
+
+    def _purge(self) -> None:
+        """
+        Jedes PURGE_COUNTER mal sollen die Schichten gepurged werden.
+        """
+        self.purge_counter -= 1
+        if self.purge_counter < 0:
+            self.purge_counter = PURGE_COUNTER
+            self.purge_schichten()
+
     def dump(self, filename=pathlib.Path, aux: dict = None):
         with filename.open("w") as f:
             f.write(f"Gesamtenergie {self.energie_total_J:0.1f} J\n")
@@ -342,7 +383,7 @@ class Speicher_dezentral:
 
             f.write("Schichtung\n")
             f.write("Temperatur C Volumen m^3\n")
-            for [temp_C, volumen_m3] in self.packet_liste:
+            for temp_C, volumen_m3 in self.packet_liste:
                 f.write(f"{temp_C:0.1f} {volumen_m3:0.6f}\n")
             f.write("\n")
 
@@ -361,7 +402,7 @@ class Speicher_dezentral:
     ) -> float:
         if volumen_rein_m3 < 1e-9:
             return temp_rein_C
-        self.packet_liste.append((temp_rein_C, volumen_rein_m3))
+        self.packet_liste.append([temp_rein_C, volumen_rein_m3])
         self.packet_liste.sort(reverse=True)
         verbleibendes_volumen_m3 = volumen_rein_m3
         bezogene_energie = 0.0
@@ -376,7 +417,7 @@ class Speicher_dezentral:
             # Das ist das letzte packet
             bezogene_energie += tempC * verbleibendes_volumen_m3
             nicht_bezogenes_volumen_m3 = volumen_m3 - verbleibendes_volumen_m3
-            self.packet_liste[packet_idx - 1] = (tempC, nicht_bezogenes_volumen_m3)
+            self.packet_liste[packet_idx - 1] = [tempC, nicht_bezogenes_volumen_m3]
             # self.warnung_falls_volumenveraenderung()
             return bezogene_energie / volumen_rein_m3
 
@@ -410,14 +451,14 @@ class Speicher_dezentral:
                 )
                 summe_bezogenes_volumen_m3 += bezogenes_volumen_m3
                 nicht_bezogenes_volumen_m3 = volumen_m3 - bezogenes_volumen_m3
-                self.packet_liste[0] = (tempC, nicht_bezogenes_volumen_m3)
+                self.packet_liste[0] = [tempC, nicht_bezogenes_volumen_m3]
             else:
                 print(
                     f"WARNUNG: Speicher {self.label}: tempC({tempC:0.2f}C) < TEMPERATURGRENZE_BRAUCHWASSER_C({TEMPERATURGRENZE_BRAUCHWASSER_C:0.2f}C)"
                 )
 
             if summe_bezogenes_volumen_m3 > 0.0:
-                self.packet_liste.insert(0, (kaltwasser_C, summe_bezogenes_volumen_m3))
+                self.packet_liste.insert(0, [kaltwasser_C, summe_bezogenes_volumen_m3])
                 self.packet_liste.sort(reverse=True)
 
             # self.warnung_falls_volumenveraenderung()
@@ -472,10 +513,10 @@ class Speicher_dezentral:
                 nicht_bezogenes_volumen_m3 = (
                     packet_volumen_m3 - benoetiges_teilvolumen_m3
                 )
-                self.packet_liste[packet_idx] = (
+                self.packet_liste[packet_idx] = [
                     packet_tempC,
                     nicht_bezogenes_volumen_m3,
-                )
+                ]
                 summe_bezogene_energie_J = energie_J
                 break
 
@@ -487,7 +528,7 @@ class Speicher_dezentral:
         temperaturhub_C = 0.0
         if summe_bezogenes_volumen_m3 > 0.0:
             self.packet_liste.append(
-                (self.ruecklauf_bodenheizung_C, summe_bezogenes_volumen_m3)
+                [self.ruecklauf_bodenheizung_C, summe_bezogenes_volumen_m3]
             )
             self.packet_liste.sort(reverse=True)
 
@@ -538,6 +579,8 @@ class Speicher_dezentral:
         return verlustleistung_W
 
     def run(self, timestep_s: float, time_s: float, modell: "Modell"):
+        self._purge()
+
         if modell.zentralheizung.fernwaermepumpe_on:
             self.out_wasser_C = self.austausch_zentralheizung(
                 temp_rein_C=self.in_wasser_C,

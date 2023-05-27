@@ -30,9 +30,9 @@ def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
         util_modell_zentralheizung.PlotFluss(zentralheizung=modell.zentralheizung),
     ]
     for speicher in (
-        modell.speichers.get_speicher("Haus 1 Normal"),
-        modell.speichers.get_speicher("Haus 2 Ferien"),
-        modell.speichers.get_speicher("Haus 3 Grossfamilie"),
+        modell.speichers.get_speicher("haus01_normal"),
+        modell.speichers.get_speicher("haus02_ferien"),
+        modell.speichers.get_speicher("haus03_grossfamilie"),
     ):
         simulation.plots.append(
             util_modell_speicher_dezentral.PlotSpeicher(
@@ -48,6 +48,9 @@ def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
             util_modell_speicher_dezentral.PlotEnergiereserve(
                 modell=modell, speicher=speicher
             )
+        )
+        simulation.plots.append(
+            util_modell_speicher_dezentral.DumpSchichtung(speicher=speicher)
         )
 
     simulation.run()

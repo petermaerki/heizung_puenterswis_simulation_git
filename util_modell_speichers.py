@@ -26,59 +26,96 @@ class Speichers:
         ] = (  # Werte gemaess Revisionsplan 1. Etappe 2008-08-20
             Speicher_dezentral(
                 fernwaermefluss_liter_pro_h=148.0,
-                label="Haus 1 Normal",
+                label="haus01_normal",
+                description="Haus 1 Normal",
                 stimuli=stimuli,
             ),
             Speicher_dezentral(
                 fernwaermefluss_liter_pro_h=129.0,
-                label="Haus 2 Ferien",
+                label="haus02_ferien",
+                description="Haus 2 Ferien",
                 stimuli=stimuli,
                 verbrauchsfaktor_grossfamilie=0.01,  # Ferien
             ),
             Speicher_dezentral(
                 fernwaermefluss_liter_pro_h=129.0,
-                label="Haus 3 Grossfamilie",
+                label="haus03_grossfamilie",
+                description="Haus 3 Grossfamilie",
                 stimuli=stimuli,
                 verbrauchsfaktor_grossfamilie=1.4,  # Grossfamilie
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=178.0, label="Haus 4", stimuli=stimuli
+                fernwaermefluss_liter_pro_h=178.0,
+                label="haus04",
+                description="Haus 4",
+                stimuli=stimuli,
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=155.9, label="Haus 5", stimuli=stimuli
+                fernwaermefluss_liter_pro_h=155.9,
+                label="haus05",
+                description="Haus 5",
+                stimuli=stimuli,
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=155.9, label="Haus 6", stimuli=stimuli
+                fernwaermefluss_liter_pro_h=155.9,
+                label="haus06",
+                description="Haus 6",
+                stimuli=stimuli,
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=146.0, label="Haus 7", stimuli=stimuli
+                fernwaermefluss_liter_pro_h=146.0,
+                label="haus07",
+                description="Haus 7",
+                stimuli=stimuli,
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=152.0, label="Haus 8", stimuli=stimuli
+                fernwaermefluss_liter_pro_h=152.0,
+                label="haus08",
+                description="Haus 8",
+                stimuli=stimuli,
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=125.0, label="Haus 9", stimuli=stimuli
+                fernwaermefluss_liter_pro_h=125.0,
+                label="haus09",
+                description="Haus 9",
+                stimuli=stimuli,
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=144.8, label="Haus 10", stimuli=stimuli
+                fernwaermefluss_liter_pro_h=144.8,
+                label="haus10",
+                description="Haus 10",
+                stimuli=stimuli,
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=154.9, label="Haus 11", stimuli=stimuli
+                fernwaermefluss_liter_pro_h=154.9,
+                label="haus11",
+                description="Haus 11",
+                stimuli=stimuli,
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=169.7, label="Haus 12", stimuli=stimuli
+                fernwaermefluss_liter_pro_h=169.7,
+                label="haus12",
+                description="Haus 12",
+                stimuli=stimuli,
             ),
             Speicher_dezentral(
                 fernwaermefluss_liter_pro_h=161.8,
-                label="Haus 13",
+                label="haus13",
+                description="Haus 13",
                 totalvolumen_m3=0.97,  # Spezial Maerki Solarspeicher
                 stimuli=stimuli,
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=141.7, label="Haus 14", stimuli=stimuli
+                fernwaermefluss_liter_pro_h=141.7,
+                label="haus14",
+                description="Haus 14",
+                stimuli=stimuli,
             ),
             Speicher_dezentral(
-                fernwaermefluss_liter_pro_h=191.0, label="Haus 15", stimuli=stimuli
+                fernwaermefluss_liter_pro_h=191.0,
+                label="haus15",
+                description="Haus 15",
+                stimuli=stimuli,
             ),
         )
 
@@ -166,4 +203,4 @@ class PlotSpeichersAnforderungen:
             plt.show()
             return
         plt.savefig(directory / "anforderungen.png")
-        plt.clf()
+        plt.close()

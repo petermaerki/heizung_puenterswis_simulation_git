@@ -48,11 +48,11 @@ class Integrals:
         self,
         objs: List[str],
         f_value: Callable[[Any, float], float],
-        f_label: Callable[[Any], str],
+        f_description: Callable[[Any], str],
     ):
         self.objs = objs
         self.f_value = f_value
-        self.labels = [f_label(o) for o in self.objs]
+        self.descriptions = [f_description(o) for o in self.objs]
         self.list_integrals = [0.0 for o in self.objs]
         self.list_values = []
 
@@ -87,19 +87,19 @@ class PlotVerluste:
         self.fernleitung_kWh = Integrals(
             objs=[self.modell.fernleitung_cold, self.modell.fernleitung_hot],
             f_value=fernleitung_value,
-            f_label=fernleitung_label,
+            f_description=fernleitung_label,
         )
 
         def speicher_value(speicher: Speicher_dezentral, timestep_s: float) -> float:
             return speicher.verlustleistung_W * timestep_s / 3600.0 / 1000.0
 
-        def speicher_label(speicher: Speicher_dezentral) -> float:
-            return speicher.label
+        def speicher_description(speicher: Speicher_dezentral) -> float:
+            return speicher.description
 
         self.speichers_kWh = Integrals(
             objs=self.modell.speichers.speichers,
             f_value=speicher_value,
-            f_label=speicher_label,
+            f_description=speicher_description,
         )
 
     def append_plot(self, timestep_s: float, time_s: float):
@@ -134,7 +134,7 @@ class PlotVerluste:
             linewidth=2,
             # color="blue",
             alpha=0.95,
-            label=self.fernleitung_kWh.labels,
+            label=self.fernleitung_kWh.descriptions,
         )
         ax.set(
             xlabel="time (h)",
@@ -147,4 +147,4 @@ class PlotVerluste:
             plt.show()
             return
         plt.savefig(directory / f"verluste.png")
-        plt.clf()
+        plt.close()

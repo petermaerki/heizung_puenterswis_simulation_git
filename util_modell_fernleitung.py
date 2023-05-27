@@ -92,7 +92,7 @@ class PlotFernleitung:
             plt.show()
             return
         plt.savefig(directory / f"fernleitung_{self.fernleitung.label}.png")
-        plt.clf()
+        plt.close()
 
 
 class Fernleitung:  # eine Leitung, also vorlauf oder ruecklauf, Siedlung Puenterswies

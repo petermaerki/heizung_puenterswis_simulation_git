@@ -12,7 +12,10 @@ DIRECTORY_RESULTS.mkdir(exist_ok=True)
 
 def test_a():
     stimuli = stimuli_wintertag
-    speicher = Speicher_dezentral(stimuli=stimuli, startTempC=60.0)
+    speicher = Speicher_dezentral(
+        stimuli=stimuli,
+        startTempC=60.0,
+    )
 
     label = "test_a"
     speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
@@ -77,7 +80,7 @@ def test_c1():
 def test_d():
     stimuli = stimuli_wintertag
     speicher = Speicher_dezentral(stimuli=stimuli, startTempC=60.0)
-    speicher.reset(packets=((90.0, 0.001),))
+    speicher.reset(packets=([90.0, 0.001],))
     label = "test_d"
     speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
     out_wasser_C = speicher.austausch_heizung(energie_J=1e5)
@@ -90,7 +93,7 @@ def test_d():
 def test_e():
     stimuli = stimuli_wintertag
     speicher = Speicher_dezentral(stimuli=stimuli, startTempC=60.0)
-    speicher.reset(packets=((40.0, speicher.volumen_auslass_von_unten_m3 - 0.001),))
+    speicher.reset(packets=([40.0, speicher.volumen_auslass_von_unten_m3 - 0.001],))
     label = "test_e"
     speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
     out_wasser_C = speicher.austausch_heizung(energie_J=1e6)
