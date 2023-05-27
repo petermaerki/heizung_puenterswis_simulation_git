@@ -64,6 +64,16 @@ def test_c():
     speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-nachher1.txt")
 
 
+def test_c1():
+    stimuli = stimuli_wintertag
+    speicher = Speicher_dezentral(stimuli=stimuli, startTempC=30.0)
+    speicher.reset(packets=((90.0, 0.001),))
+    label = "test_c1"
+    speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
+    speicher.austausch_warmwasser(energie_J=1e6)
+    speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-nachher1.txt")
+
+
 def test_d():
     stimuli = stimuli_wintertag
     speicher = Speicher_dezentral(stimuli=stimuli, startTempC=60.0)
@@ -95,12 +105,31 @@ def test_e():
     )
 
 
+def test_f():
+    stimuli = stimuli_wintertag
+    # ruecklauf_bodenheizung_C = 24.0
+    temp_knapp_ueber_ruecklauf_C = 24.0001
+    speicher = Speicher_dezentral(
+        stimuli=stimuli, startTempC=temp_knapp_ueber_ruecklauf_C
+    )
+    speicher.reset(packets=((temp_knapp_ueber_ruecklauf_C - 1e-12, 0.1),))
+    label = "test_f"
+    speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
+    out_wasser_C = speicher.austausch_heizung(energie_J=1e6)
+    speicher.dump(
+        filename=DIRECTORY_RESULTS / f"{label}-nachher1.txt",
+        aux=dict(out_wasser_C=f"{out_wasser_C:0.3f}"),
+    )
+
+
 def main():
     test_a()
     test_b()
     test_c()
+    test_c1()
     test_d()
     test_e()
+    test_f()
 
 
 if __name__ == "__main__":

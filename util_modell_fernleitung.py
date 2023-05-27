@@ -1,3 +1,4 @@
+import pathlib
 import typing
 
 import matplotlib.pyplot as plt
@@ -42,7 +43,7 @@ class PlotFernleitung:
         # self.fernwaerme_fluss_array_m3_pro_s.append(self.fernleitung.out_fluss_m3_pro_s)
         self.verlustleistung_array_W.append(self.fernleitung.verlustleistung_W)
 
-    def plot(self):
+    def plot(self, directory: pathlib.Path):
         fig, ax = plt.subplots()
         ax.plot(
             np.array(self.time_array_s) / 3600,
@@ -87,8 +88,10 @@ class PlotFernleitung:
         #     + self.speicher.label
         #     + ".png"
         # )
-        # plt.show()
-        plt.savefig(f"fernleitung_{self.fernleitung.label}.png")
+        if directory is None:
+            plt.show()
+            return
+        plt.savefig(directory / f"fernleitung_{self.fernleitung.label}.png")
         plt.clf()
 
 

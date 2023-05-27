@@ -1,3 +1,4 @@
+import pathlib
 import typing
 
 import numpy as np
@@ -145,7 +146,7 @@ class PlotSpeichersAnforderungen:
             anforderungen.append(int(speicher.out_warmwasser_anforderung) - i * 2.0)
         self.anforderungen_todo.append(anforderungen)
 
-    def plot(self):
+    def plot(self, directory: pathlib.Path):
         fig, ax = plt.subplots()
         # ax.plot(t, s)
         ax.plot(
@@ -161,5 +162,8 @@ class PlotSpeichersAnforderungen:
         ax.set(xlabel="time (h)", ylabel="Anforderungen", title="Speichers")
         ax.legend()
         ax.grid()
-        plt.savefig("anforderungen.png")
+        if directory is None:
+            plt.show()
+            return
+        plt.savefig(directory / "anforderungen.png")
         plt.clf()

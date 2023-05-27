@@ -1,3 +1,4 @@
+import pathlib
 import typing
 
 import matplotlib.pyplot as plt
@@ -28,7 +29,7 @@ class PlotFluss:
         self.time_array_s.append(time_s)
         self.values_fluss_m3_pro_s.append(self.zentralheizung.out_fluss_m3_pro_s)
 
-    def plot(self):
+    def plot(self, directory: pathlib.Path):
         fig, ax = plt.subplots()
         ax.plot(
             np.array(self.time_array_s) / 3600,
@@ -46,7 +47,10 @@ class PlotFluss:
         )
         ax.legend()
         ax.grid()
-        plt.savefig(f"zentralheizung_fluss.png")
+        if directory is None:
+            plt.show()
+            return
+        plt.savefig(directory / f"zentralheizung_fluss.png")
         plt.clf()
 
 
@@ -69,7 +73,7 @@ class PlotZentralheizung:
         self.fernwaerme_cold_avg_C.append(self.zentralheizung.in_wasser_C)
         self.fernwaerme_leistung_W.append(self.zentralheizung.fernwaerme_leistung_W)
 
-    def plot(self):
+    def plot(self, directory: pathlib.Path):
         fig, ax = plt.subplots()
         # ax.plot(t, s)
         ax.plot(
@@ -107,7 +111,10 @@ class PlotZentralheizung:
 
         ax2.legend()
         ax.grid()
-        plt.savefig("zentralheizung.png")
+        if directory is None:
+            plt.show()
+            return
+        plt.savefig(directory / "zentralheizung.png")
         plt.clf()
 
 

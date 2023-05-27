@@ -6,6 +6,8 @@ import papermill
 import util_modell_speicher_dezentral
 import util_modell_zentralheizung
 import util_stimuli
+from util_modell_fernleitung import PlotFernleitung
+from util_modell_speichers import PlotSpeichersAnforderungen
 from util_simulation import Simulation
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).resolve().parent
@@ -14,39 +16,43 @@ DIRECTORY_REPORTS = DIRECTORY_OF_THIS_FILE / "reports"
 
 def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
     simulation = Simulation(stimuli=stimuli)
+    modell = simulation.modell
 
     simulation.plots = (
-        util_modell_speicher_dezentral.PlotSpeicher(
-            modell=simulation.modell, speicher=simulation.modell.speichers[0]
-        ),
-        util_modell_speicher_dezentral.PlotEnergiereserve(
-            modell=simulation.modell, speicher=simulation.modell.speichers[1 - 1]
-        ),
-        util_modell_speicher_dezentral.PlotSpeicherSchichtung(
-            modell=simulation.modell, speicher=simulation.modell.speichers[1 - 1]
-        ),
-        util_modell_speicher_dezentral.PlotEnergiereserve(
-            modell=simulation.modell, speicher=simulation.modell.speichers[2 - 1]
-        ),
-        util_modell_speicher_dezentral.PlotSpeicherSchichtung(
-            modell=simulation.modell, speicher=simulation.modell.speichers[2 - 1]
-        ),
-        util_modell_speicher_dezentral.PlotEnergiereserve(
-            modell=simulation.modell, speicher=simulation.modell.speichers[3 - 1]
-        ),
-        util_modell_speicher_dezentral.PlotSpeicherSchichtung(
-            modell=simulation.modell, speicher=simulation.modell.speichers[3 - 1]
-        ),
         util_modell_zentralheizung.PlotZentralheizung(
-            zentralheizung=simulation.modell.zentralheizung
+            zentralheizung=modell.zentralheizung
         ),
-        util_modell_zentralheizung.PlotZentralheizungAnforderungen(
-            zentralheizung=simulation.modell.zentralheizung
-        ),
+        PlotSpeichersAnforderungen(speichers=modell.speichers),
     )
+    simulation.plots = [
+        PlotSpeichersAnforderungen(speichers=modell.speichers),
+        PlotFernleitung(fernleitung=modell.fernleitung_hot),
+        util_modell_zentralheizung.PlotFluss(zentralheizung=modell.zentralheizung),
+    ]
+    for speicher in (
+        modell.speichers.get_speicher("Haus 1 Normal"),
+        modell.speichers.get_speicher("Haus 2 Ferien"),
+        modell.speichers.get_speicher("Haus 3 Grossfamilie"),
+    ):
+        simulation.plots.append(
+            util_modell_speicher_dezentral.PlotSpeicher(
+                modell=simulation.modell, speicher=speicher
+            )
+        ),
+        simulation.plots.append(
+            util_modell_speicher_dezentral.PlotSpeicherSchichtung(
+                modell=modell, speicher=speicher
+            )
+        )
+        simulation.plots.append(
+            util_modell_speicher_dezentral.PlotEnergiereserve(
+                modell=modell, speicher=speicher
+            )
+        )
+
     simulation.run()
 
-    simulation.plot()
+    simulation.plot(directory=directory)
 
 
 def plot_notebooks(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):

@@ -32,14 +32,13 @@ class Simulation:
                     )
             time_s += timestep_s
 
-    def plot(self):
+    def plot(self, directory: pathlib.Path):
         for plot in self.plots:
-            plot.plot()
+            plot.plot(directory=directory)
 
 
 def main():
     DIRECTORY_TMP.mkdir(parents=True, exist_ok=True)
-    os.chdir(DIRECTORY_TMP)
     simulation = Simulation(stimuli=stimuli_wintertag)
 
     modell = simulation.modell
@@ -61,7 +60,8 @@ def main():
 
     simulation.run()
 
-    simulation.plot()
+    print("Start plotting")
+    simulation.plot(directory=DIRECTORY_TMP)
 
 
 if __name__ == "__main__":

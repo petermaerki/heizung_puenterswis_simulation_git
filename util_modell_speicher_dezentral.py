@@ -52,7 +52,7 @@ class PlotSpeicher:
             / (3600 * 1000)
         )
 
-    def plot(self):
+    def plot(self, directory: pathlib.Path):
         # plt.rcParams["figure.figsize"] = (20, 10)
         fig, ax = plt.subplots()
         # ax.plot(t, s)
@@ -108,8 +108,10 @@ class PlotSpeicher:
         ax.legend()
         ax2.legend()
         ax.grid()
-        # plt.show()
-        plt.savefig(f"speicher_temperaturverlauf_{self.speicher.label}.png")
+        if directory is None:
+            plt.show()
+            return
+        plt.savefig(directory / f"speicher_temperaturverlauf_{self.speicher.label}.png")
         plt.clf()
 
 
@@ -142,7 +144,7 @@ class PlotEnergiereserve:
             / (3600 * 1000)
         )
 
-    def plot(self):
+    def plot(self, directory: pathlib.Path):
         fig, ax = plt.subplots()
         ax.plot(
             np.array(self.time_array_s) / 3600,
@@ -169,7 +171,10 @@ class PlotEnergiereserve:
         )
         ax.legend()
         ax.grid()
-        plt.savefig(f"energiereserve_{self.speicher.label}.png")
+        if directory is None:
+            plt.show()
+            return
+        plt.savefig(directory / f"energiereserve_{self.speicher.label}.png")
         plt.clf()
 
 
@@ -180,7 +185,7 @@ class PlotSpeicherSchichtung:
         self.time_array_s = []
         self.time_steps_s = []
         self.temperaturen_C = []
-        self.temperaturen_i = 100
+        self.temperaturen_i = 20  # 100
 
     def append_plot(
         self,
@@ -192,7 +197,7 @@ class PlotSpeicherSchichtung:
             self.speicher.temperaturprofil(temperaturen_i=self.temperaturen_i)[::-1]
         )
 
-    def plot(self):
+    def plot(self, directory: pathlib.Path):
         if False:
             self.speicher.dump(
                 pathlib.Path(f"tmp_dump_speicher_{self.speicher.label}.txt")
@@ -221,7 +226,10 @@ class PlotSpeicherSchichtung:
         plt.xlabel("time (h)")
         plt.title("Speicher Temperaturschichtung " + self.speicher.label)
         # ax.set(xlabel="time (h)", ylabel="Temperature C", title=self.speicher.label)
-        plt.savefig(f"schichtung__{self.speicher.label}.png")
+        if directory is None:
+            plt.show()
+            return
+        plt.savefig(directory / f"schichtung__{self.speicher.label}.png")
         plt.clf()
 
 
@@ -229,7 +237,7 @@ class Speicher_dezentral:
     def __init__(
         self,
         stimuli: "Stimuli",
-        label="Speicher XY",
+        label="XY",
         fernwaermefluss_liter_pro_h=150.0,
         startTempC=30.0,
         totalvolumen_m3=0.69,
@@ -322,10 +330,9 @@ class Speicher_dezentral:
         return tempC < TEMPERATURGRENZE_BRAUCHWASSER_C  # TODO(peter): +2.0
 
     def warnung_falls_volumenveraenderung(self) -> None:
-        if False:
-            volumenabnahme_m3 = self.totalvolumen_m3 - self.berechnetes_volumen_total_m3
-            if abs(volumenabnahme_m3) > 1e-9:
-                print(f"WARNUNG: volumenabnahme_m3={volumenabnahme_m3:0.6f} m3\n")
+        volumenabnahme_m3 = self.totalvolumen_m3 - self.berechnetes_volumen_total_m3
+        if abs(volumenabnahme_m3) > 1e-9:
+            print(f"WARNUNG: volumenabnahme_m3={volumenabnahme_m3:0.6f} m3\n")
 
     def dump(self, filename=pathlib.Path, aux: dict = None):
         with filename.open("w") as f:
@@ -370,7 +377,7 @@ class Speicher_dezentral:
             bezogene_energie += tempC * verbleibendes_volumen_m3
             nicht_bezogenes_volumen_m3 = volumen_m3 - verbleibendes_volumen_m3
             self.packet_liste[packet_idx - 1] = (tempC, nicht_bezogenes_volumen_m3)
-            self.warnung_falls_volumenveraenderung()
+            # self.warnung_falls_volumenveraenderung()
             return bezogene_energie / volumen_rein_m3
 
     def austausch_warmwasser(self, energie_J=1.0) -> None:
@@ -388,86 +395,108 @@ class Speicher_dezentral:
             packet_energie_J = (
                 volumen_m3 * temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER
             )
-            if 0.0 <= packet_energie_J < verbleibende_energie_J:
-                self.packet_liste.pop(0)
-                verbleibende_energie_J -= packet_energie_J
-                summe_bezogenes_volumen_m3 += volumen_m3
-                continue
+            packet_genug_warm = tempC >= TEMPERATURGRENZE_BRAUCHWASSER_C
+            if packet_genug_warm:
+                if 0.0 <= packet_energie_J < verbleibende_energie_J:
+                    self.packet_liste.pop(0)
+                    verbleibende_energie_J -= packet_energie_J
+                    summe_bezogenes_volumen_m3 += volumen_m3
+                    continue
 
             # Das ist das letzte packet
-            if temperaturhub_C < 0.0:
-                print(
-                    f"WARNUNG: Speicher {self.label}: temperaturhub_C={temperaturhub_C:0.6f}"
-                )
-            else:
+            if packet_genug_warm:
                 bezogenes_volumen_m3 = verbleibende_energie_J / (
                     temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER
                 )
                 summe_bezogenes_volumen_m3 += bezogenes_volumen_m3
                 nicht_bezogenes_volumen_m3 = volumen_m3 - bezogenes_volumen_m3
                 self.packet_liste[0] = (tempC, nicht_bezogenes_volumen_m3)
+            else:
+                print(
+                    f"WARNUNG: Speicher {self.label}: tempC({tempC:0.2f}C) < TEMPERATURGRENZE_BRAUCHWASSER_C({TEMPERATURGRENZE_BRAUCHWASSER_C:0.2f}C)"
+                )
 
-            self.packet_liste.insert(0, (kaltwasser_C, summe_bezogenes_volumen_m3))
-            self.packet_liste.sort(reverse=True)
+            if summe_bezogenes_volumen_m3 > 0.0:
+                self.packet_liste.insert(0, (kaltwasser_C, summe_bezogenes_volumen_m3))
+                self.packet_liste.sort(reverse=True)
 
-            self.warnung_falls_volumenveraenderung()
+            # self.warnung_falls_volumenveraenderung()
             return
 
     def austausch_heizung(self, energie_J=1.0):
         """
         Das Wasser wird zuoberst abgenommen.
+
+        Fehlerfälle:
+          Energie nicht verfügbar.
+        Manipulationen am Kessel
+          1-n Pakete entziehen
+          0-1 Paket einfügen
         """
         if energie_J < 1e-9:
             return self.ruecklauf_bodenheizung_C
-        verbleibende_energie_J = energie_J
+        summe_bezogene_energie_J = 0.0
         summe_bezogenes_volumen_m3 = 0.0
 
         def get_idx() -> int:
+            """
+            Gibt den index von dem Packet zurück, das vor dem Heizausgang liegt.
+            """
             sum_volumen_m3 = 0.0
             for idx, (tempC, packet_volumen_m3) in enumerate(self.packet_liste):
                 sum_volumen_m3 += packet_volumen_m3
                 if sum_volumen_m3 > self.volumen_auslass_von_oben_m3:
                     return idx
-            raise Exception("get_idx()")
+            raise Exception("get_idx(). Speicher nicht voll")
 
         packet_idx = get_idx()
         while True:
-            tempC, volumen_m3 = self.packet_liste[packet_idx]
-            temperaturhub_C = tempC - self.ruecklauf_bodenheizung_C
-            packet_energie_J = (
-                volumen_m3 * temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER
-            )
-            if 0.0 <= packet_energie_J < verbleibende_energie_J:
-                if packet_idx == 0:
-                    print(f"Warnung: Speicher {self.label}: packet_idx={packet_idx}")
-                else:
-                    self.packet_liste.pop(packet_idx)
-                    verbleibende_energie_J -= packet_energie_J
-                    summe_bezogenes_volumen_m3 += volumen_m3
-                    continue
+            if packet_idx >= len(self.packet_liste):
+                print(f"WARNUNG: Speicher {self.label}: Zu wenig Wärme.")
+                break
+            packet_tempC, packet_volumen_m3 = self.packet_liste[packet_idx]
+            temperaturhub_C = packet_tempC - self.ruecklauf_bodenheizung_C
+            if temperaturhub_C <= 0.0:
+                f"WARNUNG: Speicher {self.label}: temperaturhub_C={temperaturhub_C:0.6f}"
+                break
 
-            # Das ist das letzte packet
-            if temperaturhub_C < 0.0:
-                print(
-                    f"WARNUNG: Speicher {self.label}: temperaturhub_C={temperaturhub_C:0.6f}"
-                )
-            else:
-                bezogenes_volumen_m3 = verbleibende_energie_J / (
+            packet_energie_J = (
+                packet_volumen_m3 * temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER
+            )
+            if packet_energie_J + summe_bezogene_energie_J > energie_J:
+                # Diese Packet enthält mehr als genug als die benötigte Energie
+                benoetiges_teilvolumen_m3 = (energie_J - summe_bezogene_energie_J) / (
                     temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER
                 )
-                summe_bezogenes_volumen_m3 += bezogenes_volumen_m3
-                nicht_bezogenes_volumen_m3 = volumen_m3 - bezogenes_volumen_m3
-                self.packet_liste[packet_idx] = (tempC, nicht_bezogenes_volumen_m3)
+                summe_bezogenes_volumen_m3 += benoetiges_teilvolumen_m3
+                nicht_bezogenes_volumen_m3 = (
+                    packet_volumen_m3 - benoetiges_teilvolumen_m3
+                )
+                self.packet_liste[packet_idx] = (
+                    packet_tempC,
+                    nicht_bezogenes_volumen_m3,
+                )
+                summe_bezogene_energie_J = energie_J
+                break
 
-            temperaturhub_C = energie_J / (
-                summe_bezogenes_volumen_m3 * WASSER_WAERMEKAP * DICHTE_WASSER
-            )
+            # Wir benötigen das gesamte Packet
+            self.packet_liste.pop(packet_idx)
+            summe_bezogene_energie_J += packet_energie_J
+            summe_bezogenes_volumen_m3 += packet_volumen_m3
+
+        temperaturhub_C = 0.0
+        if summe_bezogenes_volumen_m3 > 0.0:
             self.packet_liste.append(
                 (self.ruecklauf_bodenheizung_C, summe_bezogenes_volumen_m3)
             )
             self.packet_liste.sort(reverse=True)
-            self.warnung_falls_volumenveraenderung()
-            return temperaturhub_C + self.ruecklauf_bodenheizung_C
+
+            temperaturhub_C = summe_bezogene_energie_J / (
+                summe_bezogenes_volumen_m3 * WASSER_WAERMEKAP * DICHTE_WASSER
+            )
+
+        # self.warnung_falls_volumenveraenderung()
+        return temperaturhub_C + self.ruecklauf_bodenheizung_C
 
     def temperaturprofil(self, temperaturen_i=10):
         temperaturen = []
