@@ -1,7 +1,7 @@
 import os
 import pathlib
 
-from util_modell import Modell
+from util_modell import Modell, PlotVerluste
 from util_modell_fernleitung import PlotFernleitung
 from util_modell_speicher_dezentral import PlotEnergiereserve, PlotSpeicherSchichtung
 from util_modell_speichers import PlotSpeichersAnforderungen
@@ -44,6 +44,7 @@ def main():
     modell = simulation.modell
 
     simulation.plots = [
+        PlotVerluste(modell=modell),
         PlotSpeichersAnforderungen(speichers=modell.speichers),
         PlotFernleitung(fernleitung=modell.fernleitung_hot),
         PlotFernleitung(fernleitung=modell.fernleitung_cold),
