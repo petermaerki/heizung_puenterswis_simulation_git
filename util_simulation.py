@@ -1,6 +1,7 @@
-import os
+import logging
 import pathlib
 
+from util_common import init_logging, remove_files
 from util_modell import Modell, PlotVerluste
 from util_modell_fernleitung import PlotFernleitung
 from util_modell_speicher_dezentral import (
@@ -12,17 +13,26 @@ from util_modell_speichers import PlotSpeichersAnforderungen
 from util_modell_zentralheizung import PlotFluss
 from util_stimuli import Stimuli, stimuli_sommertag, stimuli_wintertag
 
-DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).resolve().parent
-DIRECTORY_TMP = DIRECTORY_OF_THIS_FILE / "tmp"
+logger = logging.getLogger("simulation")
+
+DIRECTORY_TOP = pathlib.Path(__file__).resolve().parent
+DIRECTORY_TMP = DIRECTORY_TOP / "tmp"
 
 
 class Simulation:
-    def __init__(self, stimuli: "Stimuli"):
-        self.plots = []
+    def __init__(self, stimuli: "Stimuli", directory: pathlib.Path = None):
+        if directory is not None:
+            directory.mkdir(parents=True, exist_ok=True)
+            remove_files(directory=directory)
+        init_logging(directory=directory)
 
+        self.directory = directory
+        self.plots = []
         self.modell = Modell(stimuli)
 
     def run(self):
+        logger.info(f"Simulation {self.modell.stimuli.label}: run")
+
         duration_s = self.modell.stimuli.duration_s
         timestep_s = self.modell.stimuli.timestep_s
         time_s = self.modell.stimuli.start_s
@@ -36,14 +46,18 @@ class Simulation:
                     )
             time_s += timestep_s
 
-    def plot(self, directory: pathlib.Path):
+    def plot(self):
         for plot in self.plots:
-            plot.plot(directory=directory)
+            logger.info(
+                f"Simulation {self.modell.stimuli.label}: {plot.__class__.__name__}"
+            )
+            plot.plot(directory=self.directory)
+
+        logger.info(f"Simulation {self.modell.stimuli.label}: done")
 
 
 def main():
-    DIRECTORY_TMP.mkdir(parents=True, exist_ok=True)
-    simulation = Simulation(stimuli=stimuli_sommertag)
+    simulation = Simulation(stimuli=stimuli_sommertag, directory=DIRECTORY_TMP)
 
     modell = simulation.modell
 
@@ -67,8 +81,7 @@ def main():
 
     simulation.run()
 
-    print("Start plotting")
-    simulation.plot(directory=DIRECTORY_TMP)
+    simulation.plot()
 
 
 if __name__ == "__main__":

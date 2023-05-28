@@ -1,13 +1,6 @@
-import cProfile
-import pathlib
-
-from util_modell import Modell
+from util_common import DIRECTORY_RESULTS
 from util_modell_speicher_dezentral import Speicher_dezentral
 from util_stimuli import stimuli_wintertag
-
-DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).resolve().parent
-DIRECTORY_RESULTS = DIRECTORY_OF_THIS_FILE / "test_speicher_dezentral-results"
-DIRECTORY_RESULTS.mkdir(exist_ok=True)
 
 
 def test_a():

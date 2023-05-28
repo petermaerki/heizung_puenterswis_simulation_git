@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 
 DAY_S = 24 * 3600.0
@@ -13,9 +14,9 @@ DAY_S = 24 * 3600.0
 class Stimuli:
     label: str
     umgebungstemperatur_C: float
-    start_s: float
-    duration_s: float
-    timestep_s: float
+    start_s: float = -2 * DAY_S
+    duration_s: float = 5 * DAY_S
+    timestep_s: float = 5 * 60.0
 
     def do_plot(self, time_s) -> bool:
         return True
@@ -24,27 +25,18 @@ class Stimuli:
 stimuli_wintertag = Stimuli(
     label="wintertag",
     umgebungstemperatur_C=-10.0,
-    start_s=-2 * DAY_S,
-    duration_s=5 * DAY_S,
-    timestep_s=5 * 60.0,
 )
 
 
 stimuli_fruelingstag = Stimuli(
     label="fruelingstag",
     umgebungstemperatur_C=15.0,
-    start_s=-2 * DAY_S,
-    duration_s=5 * DAY_S,
-    timestep_s=5 * 60.0,
 )
 
 
 stimuli_sommertag = Stimuli(
     label="sommertag",
     umgebungstemperatur_C=25.0,
-    start_s=-2 * DAY_S,
-    duration_s=5 * DAY_S,
-    timestep_s=5 * 60.0,
 )
 
 ALL: tuple[Stimuli] = (stimuli_wintertag, stimuli_fruelingstag, stimuli_sommertag)

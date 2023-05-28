@@ -1,3 +1,4 @@
+import logging
 import pathlib
 from typing import TYPE_CHECKING, List, Tuple
 
@@ -11,6 +12,8 @@ if TYPE_CHECKING:
     from util_modell import Modell
     from util_modell_fernleitung import Fernleitung
     from util_modell_zentralheizung import Zentralheizung
+
+logger = logging.getLogger("simulation")
 
 TEMPERATURGRENZE_BRAUCHWASSER_C = 50.0
 """Diese Temperatur wird fuer Brauchwasser mindestens gebraucht"""
@@ -352,7 +355,7 @@ class Speicher_dezentral:
     def warnung_falls_volumenveraenderung(self) -> None:
         volumenabnahme_m3 = self.totalvolumen_m3 - self.berechnetes_volumen_total_m3
         if abs(volumenabnahme_m3) > 1e-9:
-            print(f"WARNUNG: volumenabnahme_m3={volumenabnahme_m3:0.6f} m3\n")
+            logger.debug(f"volumenabnahme_m3={volumenabnahme_m3:0.6f} m3\n")
 
     def purge_schichten(self) -> Tuple[int, int]:
         liste_vorher = self.packet_liste
@@ -453,8 +456,8 @@ class Speicher_dezentral:
                 nicht_bezogenes_volumen_m3 = volumen_m3 - bezogenes_volumen_m3
                 self.packet_liste[0] = [tempC, nicht_bezogenes_volumen_m3]
             else:
-                print(
-                    f"WARNUNG: Speicher {self.label}: tempC({tempC:0.2f}C) < TEMPERATURGRENZE_BRAUCHWASSER_C({TEMPERATURGRENZE_BRAUCHWASSER_C:0.2f}C)"
+                logger.debug(
+                    f"Speicher {self.label}: tempC({tempC:0.2f}C) < TEMPERATURGRENZE_BRAUCHWASSER_C({TEMPERATURGRENZE_BRAUCHWASSER_C:0.2f}C)"
                 )
 
             if summe_bezogenes_volumen_m3 > 0.0:
@@ -493,12 +496,14 @@ class Speicher_dezentral:
         packet_idx = get_idx()
         while True:
             if packet_idx >= len(self.packet_liste):
-                print(f"WARNUNG: Speicher {self.label}: Zu wenig Wärme.")
+                logger.debug(f"Speicher {self.label}: Zu wenig Wärme.")
                 break
             packet_tempC, packet_volumen_m3 = self.packet_liste[packet_idx]
             temperaturhub_C = packet_tempC - self.ruecklauf_bodenheizung_C
             if temperaturhub_C <= 0.0:
-                f"WARNUNG: Speicher {self.label}: temperaturhub_C={temperaturhub_C:0.6f}"
+                logger.debug(
+                    f"Speicher {self.label}: temperaturhub_C={temperaturhub_C:0.6f}"
+                )
                 break
 
             packet_energie_J = (

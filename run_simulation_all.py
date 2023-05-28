@@ -6,16 +6,14 @@ import papermill
 import util_modell_speicher_dezentral
 import util_modell_zentralheizung
 import util_stimuli
+from util_common import DIRECTORY_REPORTS, DIRECTORY_TOP, remove_files
 from util_modell_fernleitung import PlotFernleitung
 from util_modell_speichers import PlotSpeichersAnforderungen
 from util_simulation import Simulation
 
-DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).resolve().parent
-DIRECTORY_REPORTS = DIRECTORY_OF_THIS_FILE / "reports"
-
 
 def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
-    simulation = Simulation(stimuli=stimuli)
+    simulation = Simulation(stimuli=stimuli, directory=directory)
     modell = simulation.modell
 
     simulation.plots = (
@@ -55,17 +53,17 @@ def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
 
     simulation.run()
 
-    simulation.plot(directory=directory)
+    simulation.plot()
 
 
 def plot_notebooks(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
     # https://papermill.readthedocs.io/en/latest/
 
-    for notebook in DIRECTORY_OF_THIS_FILE.glob("report_*.ipynb"):
+    for notebook in DIRECTORY_TOP.glob("report_*.ipynb"):
         papermill.execute_notebook(
             input_path=notebook,
             output_path=directory / notebook.name,
-            cwd=DIRECTORY_OF_THIS_FILE,
+            cwd=DIRECTORY_TOP,
             parameters=dict(
                 stimuli_label=stimuli.label,
             ),
@@ -73,8 +71,8 @@ def plot_notebooks(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
         )
 
 
-def build_report(stimuli: util_stimuli.Stimuli):
-    directory = DIRECTORY_REPORTS / stimuli.label
+def build_report(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
+    directory = directory / stimuli.label
     directory.mkdir(parents=True, exist_ok=True)
     os.chdir(directory)
 
@@ -82,23 +80,10 @@ def build_report(stimuli: util_stimuli.Stimuli):
     plot_notebooks(stimuli=stimuli, directory=directory)
 
 
-def remove_files():
-    """
-    Remove all files in DIRECTORY_REPORTS if possible
-    """
-    for filename in DIRECTORY_REPORTS.rglob("*.*"):
-        try:
-            filename.unlink()
-        except Exception as e:
-            print(
-                f"DEBUG: Failed to remove {filename.relative_to(DIRECTORY_OF_THIS_FILE) }"
-            )
-
-
 def main():
-    remove_files()
+    remove_files(DIRECTORY_REPORTS)
     for stimuli in util_stimuli.ALL:
-        build_report(stimuli)
+        build_report(stimuli, DIRECTORY_REPORTS)
 
 
 if __name__ == "__main__":
