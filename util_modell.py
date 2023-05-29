@@ -73,6 +73,18 @@ class Integrals:
         return sum_integral
 
 
+def summen_total(summen: List[List[float]]) -> List[float]:
+    total = None
+    for summe in summen:
+        if total is None:
+            total = summe.copy()
+            continue
+        for i in range(len(summe)):
+            total[i] += summe[i]
+
+    return total
+
+
 class PlotVerluste:
     def __init__(self, modell: "Modell"):
         self.modell = modell
@@ -114,7 +126,7 @@ class PlotVerluste:
             self.speichers_kWh.data,
             linestyle="solid",
             linewidth=1,
-            color="green",
+            color="limegreen",
             alpha=0.5
             # label=self.speichers_kWh.labels,
         )
@@ -138,21 +150,12 @@ class PlotVerluste:
         )
         ax.plot(
             np.array(self.time_array_s) / 3600,
-            self.totalverluste_speicher_array_kWh,
+            summen_total([self.speichers_kWh.summe, self.fernleitung_kWh.summe]),
             linestyle="solid",
             linewidth=2,
-            color="green",
+            color="red",
             alpha=0.95,
-            label="Haeuser total",
-        )
-        ax.plot(
-            np.array(self.time_array_s) / 3600,
-            self.totalverluste_array_kWh,
-            linestyle="solid",
-            linewidth=3,
-            color="black",
-            alpha=0.95,
-            label="Total Siedlung",
+            label="Total",
         )
         ax.set(
             xlabel="time (h)",
@@ -161,19 +164,7 @@ class PlotVerluste:
         )
         ax.legend()
         ax.grid()
-        box = ax.get_position()
-        ax.set_position(
-            [box.x0, box.y0 + box.height * 0.4, box.width, box.height * 0.6]
-        )
 
-        # Put a legend below current axis
-        ax.legend(
-            loc="upper center",
-            bbox_to_anchor=(0.5, -0.2),  # -0.05),
-            fancybox=False,
-            shadow=False,
-            ncol=4,
-        )  # ncol=5
         if directory is None:
             plt.show()
             return
