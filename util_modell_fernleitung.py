@@ -68,7 +68,7 @@ class PlotFernleitung:
             ylabel="Temperatur",
             title="Fernleitung Tempeatur ",  # + self.speicher.label,
         )
-        ax.set(xlabel="time (h)", ylabel="Temperature C", title="Zentralheizung")
+        ax.set(xlabel="time (h)", ylabel="Temperature C", title="Fernleitung")
         ax2 = ax.twinx()
         ax2.plot(
             np.array(self.time_array_s) / 3600,
@@ -77,9 +77,11 @@ class PlotFernleitung:
             linewidth=3,
             color="black",
             alpha=0.95,
-            label="Fernleitung Verlustleistung kW",
+            # label="Fernleitung Verlustleistung kW",
         )
-        ax2.set(ylabel="Power kW")
+        ax2.set(ylabel="Verlustleistung Fernleitung kW")
+        # ax2.yaxis.set_major_formatter(mtick.FormatStrFormatter("%.2e"))
+        ax2.ticklabel_format(useOffset=False)
         ax2.legend()
         ax.legend()
         ax.grid()

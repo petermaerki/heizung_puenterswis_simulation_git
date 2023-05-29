@@ -15,7 +15,7 @@ class Stimuli:
     label: str
     umgebungstemperatur_C: float
     start_s: float = -0.5 * DAY_S
-    duration_s: float = 5 * DAY_S
+    duration_s: float = 15 * DAY_S
     timestep_s: float = 5 * 60.0
 
     def do_plot(self, time_s) -> bool:
