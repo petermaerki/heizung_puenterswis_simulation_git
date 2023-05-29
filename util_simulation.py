@@ -35,7 +35,10 @@ class Simulation:
 
         timestep_s = self.modell.stimuli.timestep_s
         time_s = self.modell.stimuli.start_s
-        while time_s < self.modell.stimuli.end_s:
+        while (
+            time_s < self.modell.stimuli.end_s
+            and self.modell.zentralheizung.heizzyklen_i < 3
+        ):
             self.modell.run(timestep_s=timestep_s, time_s=time_s)
             if self.modell.stimuli.do_plot(time_s=time_s):
                 for _plot in self.plots:

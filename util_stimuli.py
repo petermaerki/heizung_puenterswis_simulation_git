@@ -14,12 +14,13 @@ DAY_S = 24 * 3600.0
 class Stimuli:
     label: str
     umgebungstemperatur_C: float
-    start_s: float = -2 * DAY_S
+    start_s: float = -0.5 * DAY_S
     duration_s: float = 5 * DAY_S
     timestep_s: float = 5 * 60.0
 
     def do_plot(self, time_s) -> bool:
-        return True
+        return time_s >= 0.0  # erst nach Zeitpunkt null, also nach Einpendeln
+        # return True
 
     @property
     def end_s(self) -> float:

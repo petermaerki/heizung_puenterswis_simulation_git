@@ -37,11 +37,11 @@ def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
         modell.speichers.get_speicher("haus02_ferien"),
         modell.speichers.get_speicher("haus03_grossfamilie"),
     ):
-        simulation.plots.append(
-            util_modell_speicher_dezentral.PlotSpeicher(
-                modell=simulation.modell, speicher=speicher
-            )
-        ),
+        # simulation.plots.append(
+        #     util_modell_speicher_dezentral.PlotSpeicher(
+        #         modell=simulation.modell, speicher=speicher
+        #     )
+        # ),
         simulation.plots.append(
             util_modell_speicher_dezentral.PlotSpeicherSchichtung(
                 modell=modell, speicher=speicher

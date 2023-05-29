@@ -138,6 +138,7 @@ class Zentralheizung:
         self.fernwaermepumpe_on = True
         self.warmwasserladung_start_s = None
         self.in_fernwaerme_angefordert = False
+        self.heizzyklen_i = 0
 
     def _update_heizkurve(self):
         # self.heizen = (
@@ -193,6 +194,7 @@ class Zentralheizung:
             assert duration_on_s >= 0.0
             if duration_on_s > warmwasser_plateau_zeit_s + warmwasser_rampe_rauf_s:
                 self.warmwasserladung_start_s = None
+                self.heizzyklen_i += 1
 
             def calculate_C():
                 rampe_start_C = 45.0
