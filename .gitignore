@@ -3,3 +3,4 @@ reports/**
 tmp/**
 .~lock.*.ods#
 **/*-checkpoint.ipynb
+simulation_logging.txt
