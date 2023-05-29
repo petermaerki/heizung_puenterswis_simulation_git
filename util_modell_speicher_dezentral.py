@@ -372,11 +372,11 @@ class Speicher_dezentral:
 
     @property
     def _heizung_anforderung(self) -> bool:
-        # TODO: Diese Funktion wird sehr auf aufgerufen: cashing!
+        # TODO: Diese Funktion wird sehr oft aufgerufen: cashing!
         if not self.heizung_ein():
             return False
         packet_idx = self._get_idx_heizung()
-        tempC, volumen_m3 = self.packet_liste[0]
+        tempC, volumen_m3 = self.packet_liste[packet_idx]
         reserve_C = 2.0  # etwas zu frueh Bedarf Melden
         return tempC < self.modell.zentralheizung.heizkurve_heizungswasser_C + reserve_C
 

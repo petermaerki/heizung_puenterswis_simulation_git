@@ -46,7 +46,7 @@ class Speichers:
                 fernwaermefluss_liter_pro_h=129.0,
                 label="haus03_grossfamilie",
                 description="Haus 3 Grossfamilie",
-                verbrauchsfaktor_grossfamilie=1.4,  # Grossfamilie
+                verbrauchsfaktor_grossfamilie=1.3,  # Grossfamilie
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
