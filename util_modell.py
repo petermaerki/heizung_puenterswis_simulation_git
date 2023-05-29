@@ -136,6 +136,24 @@ class PlotVerluste:
             alpha=0.95,
             label=self.fernleitung_kWh.descriptions,
         )
+        ax.plot(
+            np.array(self.time_array_s) / 3600,
+            self.totalverluste_speicher_array_kWh,
+            linestyle="solid",
+            linewidth=2,
+            color="green",
+            alpha=0.95,
+            label="Haeuser total",
+        )
+        ax.plot(
+            np.array(self.time_array_s) / 3600,
+            self.totalverluste_array_kWh,
+            linestyle="solid",
+            linewidth=3,
+            color="black",
+            alpha=0.95,
+            label="Total Siedlung",
+        )
         ax.set(
             xlabel="time (h)",
             ylabel="Energie kWh",
@@ -143,6 +161,19 @@ class PlotVerluste:
         )
         ax.legend()
         ax.grid()
+        box = ax.get_position()
+        ax.set_position(
+            [box.x0, box.y0 + box.height * 0.4, box.width, box.height * 0.6]
+        )
+
+        # Put a legend below current axis
+        ax.legend(
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.2),  # -0.05),
+            fancybox=False,
+            shadow=False,
+            ncol=4,
+        )  # ncol=5
         if directory is None:
             plt.show()
             return

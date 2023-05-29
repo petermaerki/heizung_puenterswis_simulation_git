@@ -161,7 +161,11 @@ class Speichers:
         for speicher in self.speichers:
             # self.fernwaerme_cold_C.append(speicher.fernwaerme_cold_C)
             # self.fernwaermefluss_m3_pro_s.append(speicher.fernwaermefluss_m3_pro_s)
-            mischsumme += speicher.out_wasser_C * speicher.out_fernwaermefluss_m3_pro_s
+            mischsumme += (
+                speicher.out_wasser_C * speicher.out_nominal_fernwaermefluss_m3_pro_s
+            )
+            if self.fernwaerme_totalfluss_m3_pro_s < 1e-9:
+                return 0.0  # sieht besser aus im Diagramm
         return mischsumme / self.fernwaerme_totalfluss_m3_pro_s
 
 

@@ -223,12 +223,15 @@ class Zentralheizung:
             ) * (leistung_kalt_W - leistung_warm_W) + leistung_warm_W
             leistung_W = leistung_W * 15.0
 
+            if modell.speichers.fernwaerme_totalfluss_m3_pro_s < 1e-9:
+                self.out_wasser_C = 0.0
+                return
             temperaturhub_fuer_leistung_C = leistung_W / (
                 modell.speichers.fernwaerme_totalfluss_m3_pro_s
                 * WASSER_WAERMEKAP
                 * DICHTE_WASSER
             )
-            erhoehung_reserve_C = 5.0
+            erhoehung_reserve_C = 8.0
             self.out_wasser_C = (
                 modell.zentralheizung.heizkurve_heizungswasser_C
                 + temperaturhub_fuer_leistung_C

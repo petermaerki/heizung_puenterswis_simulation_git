@@ -274,7 +274,11 @@ class Speicher_dezentral:
         self.label = label
         self.description = description
         self.startTempC = startTempC
-        self.out_fernwaermefluss_m3_pro_s = fernwaermefluss_liter_pro_h / 1000 / 3600
+        self.out_fernwaermefluss_m3_pro_s = 0.0
+        self.out_nominal_fernwaermefluss_m3_pro_s = (
+            fernwaermefluss_liter_pro_h / 1000 / 3600
+        )
+        # self.teilspeicher_i = 10
         self.totalvolumen_m3 = totalvolumen_m3
         self.ruecklauf_bodenheizung_C = 24.0
         self.anteil_auslass_von_unten = 0.68
@@ -355,7 +359,8 @@ class Speicher_dezentral:
     @property
     def out_warmwasser_anforderung(self) -> bool:
         tempC, volumen_m3 = self.packet_liste[0]
-        return tempC < TEMPERATURGRENZE_BRAUCHWASSER_C  # TODO(peter): +2.0
+        reserve_C = 2.0  # etwas zu frueh Bedarf Melden
+        return tempC < TEMPERATURGRENZE_BRAUCHWASSER_C + reserve_C
 
     def warnung_falls_volumenveraenderung(self) -> None:
         volumenabnahme_m3 = self.totalvolumen_m3 - self.berechnetes_volumen_total_m3
@@ -600,8 +605,14 @@ class Speicher_dezentral:
         if modell.zentralheizung.fernwaermepumpe_on:
             self.out_wasser_C = self.austausch_zentralheizung(
                 temp_rein_C=self.in_wasser_C,
-                volumen_rein_m3=self.out_fernwaermefluss_m3_pro_s * timestep_s,
+                volumen_rein_m3=self.out_nominal_fernwaermefluss_m3_pro_s * timestep_s,
             )
+            self.out_fernwaermefluss_m3_pro_s = (
+                self.out_nominal_fernwaermefluss_m3_pro_s
+            )
+
+        else:
+            self.out_fernwaermefluss_m3_pro_s = 0.0
 
         if self.warmwassernutzung:
             leistung_warmwasser_W = (
@@ -635,3 +646,4 @@ class Speicher_dezentral:
 
     def update_input(self, fernleitung_hot: "Fernleitung"):
         self.in_wasser_C = fernleitung_hot.out_wasser_C
+        self.in_fluss_m3_pro_s = fernleitung_hot.out_fluss_m3_pro_s
