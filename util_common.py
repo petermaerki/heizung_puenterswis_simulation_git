@@ -1,12 +1,21 @@
 import logging
 import pathlib
 
-logger = logging.getLogger("simulation")
+_logger = logging.getLogger("simulation")
 
 DIRECTORY_TOP = pathlib.Path(__file__).resolve().parent
 DIRECTORY_REPORTS = DIRECTORY_TOP / "reports"
 DIRECTORY_RESULTS = DIRECTORY_TOP / "test_speicher_dezentral-results"
 DIRECTORY_RESULTS.mkdir(exist_ok=True)
+
+
+def warning(logger: logging.Logger, time_s: float, msg: str):
+    """
+    Vor dem Zeitpunkt 0 werden warnungen als 'debug' ausgegeben, nachher als 'warnung'.
+    Zudem wird der Meldung noch der Zeitpunkt beigefügt.
+    """
+    func = logger.warning if time_s > 0.0 else logger.debug
+    func(f"{time_s/3600.0:0.1f}h: {msg}")
 
 
 def remove_files(directory: pathlib.Path):
@@ -29,19 +38,19 @@ def init_logging(directory: pathlib.Path = None):
     filename = directory / "simulation_logging.txt"
 
     # Remove previous handlers
-    while len(logging.root.handlers) > 0:
-        logger.removeHandler(logging.root.handlers[0])
+    while len(_logger.handlers) > 0:
+        _logger.removeHandler(_logger.handlers[0])
 
     formatter = logging.Formatter(LOGGING_FORMAT)
 
     fh = logging.FileHandler(filename=filename)
     fh.setLevel(level=logging.DEBUG)
     fh.setFormatter(formatter)
-    logger.addHandler(fh)
+    _logger.addHandler(fh)
 
     ch = logging.StreamHandler()
-    ch.setLevel(level=logging.DEBUG)
+    ch.setLevel(level=logging.INFO)
     ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    _logger.addHandler(ch)
 
-    logger.setLevel(level=logging.INFO)
+    _logger.setLevel(level=logging.DEBUG)

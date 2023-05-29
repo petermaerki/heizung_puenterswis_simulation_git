@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 
+from util_common import warning
 from util_konstanten import DICHTE_WASSER, WASSER_WAERMEKAP
 from util_stimuli import Stimuli
 
@@ -252,6 +253,10 @@ PURGE_COUNTER = 10
 """
 Jedes zehnte Mal:Schichtung purge.
 """
+PURGE_TOLERANCE_C = 0.01
+"""
+Temperaturschichten dürfen bis zu dieser Toleranz vereint werden.
+"""
 
 
 class Speicher_dezentral:
@@ -355,14 +360,14 @@ class Speicher_dezentral:
     def warnung_falls_volumenveraenderung(self) -> None:
         volumenabnahme_m3 = self.totalvolumen_m3 - self.berechnetes_volumen_total_m3
         if abs(volumenabnahme_m3) > 1e-9:
-            logger.debug(f"volumenabnahme_m3={volumenabnahme_m3:0.6f} m3\n")
+            logger.error(f"volumenabnahme_m3={volumenabnahme_m3:0.6f} m3\n")
 
     def purge_schichten(self) -> Tuple[int, int]:
         liste_vorher = self.packet_liste
         self.packet_liste = []
         last_entry = [1e12, 0.0]
         for packet_temp_C, packet_volumen_m3 in liste_vorher:
-            if abs(last_entry[0] - packet_temp_C) < 0.01:
+            if abs(last_entry[0] - packet_temp_C) < PURGE_TOLERANCE_C:
                 last_entry[1] += packet_volumen_m3
                 continue
             last_entry = [packet_temp_C, packet_volumen_m3]
@@ -424,7 +429,7 @@ class Speicher_dezentral:
             # self.warnung_falls_volumenveraenderung()
             return bezogene_energie / volumen_rein_m3
 
-    def austausch_warmwasser(self, energie_J=1.0) -> None:
+    def austausch_warmwasser(self, energie_J: float, time_s=3720.0) -> None:
         """
         Das Wasser wird zuoberst abgenommen.
         """
@@ -456,8 +461,10 @@ class Speicher_dezentral:
                 nicht_bezogenes_volumen_m3 = volumen_m3 - bezogenes_volumen_m3
                 self.packet_liste[0] = [tempC, nicht_bezogenes_volumen_m3]
             else:
-                logger.debug(
-                    f"Speicher {self.label}: tempC({tempC:0.2f}C) < TEMPERATURGRENZE_BRAUCHWASSER_C({TEMPERATURGRENZE_BRAUCHWASSER_C:0.2f}C)"
+                warning(
+                    logger,
+                    time_s,
+                    f"{self.label}: tempC({tempC:0.2f}C) < TEMPERATURGRENZE_BRAUCHWASSER_C({TEMPERATURGRENZE_BRAUCHWASSER_C:0.2f}C)",
                 )
 
             if summe_bezogenes_volumen_m3 > 0.0:
@@ -467,7 +474,7 @@ class Speicher_dezentral:
             # self.warnung_falls_volumenveraenderung()
             return
 
-    def austausch_heizung(self, energie_J=1.0):
+    def austausch_heizung(self, energie_J: float, time_s=3720.0):
         """
         Das Wasser wird zuoberst abgenommen.
 
@@ -496,13 +503,19 @@ class Speicher_dezentral:
         packet_idx = get_idx()
         while True:
             if packet_idx >= len(self.packet_liste):
-                logger.debug(f"Speicher {self.label}: Zu wenig Wärme.")
+                warning(
+                    logger,
+                    time_s,
+                    f"{self.label}: Zu wenig Wärme.",
+                )
                 break
             packet_tempC, packet_volumen_m3 = self.packet_liste[packet_idx]
             temperaturhub_C = packet_tempC - self.ruecklauf_bodenheizung_C
-            if temperaturhub_C <= 0.0:
-                logger.debug(
-                    f"Speicher {self.label}: temperaturhub_C={temperaturhub_C:0.6f}"
+            if temperaturhub_C < 0.0:
+                warning(
+                    logger,
+                    time_s,
+                    f"{self.label}: temperaturhub_C={temperaturhub_C:0.6f}",
                 )
                 break
 
@@ -584,8 +597,6 @@ class Speicher_dezentral:
         return verlustleistung_W
 
     def run(self, timestep_s: float, time_s: float, modell: "Modell"):
-        self._purge()
-
         if modell.zentralheizung.fernwaermepumpe_on:
             self.out_wasser_C = self.austausch_zentralheizung(
                 temp_rein_C=self.in_wasser_C,
@@ -599,7 +610,9 @@ class Speicher_dezentral:
             leistung_warmwasser_W = (
                 leistung_warmwasser_W * self.verbrauchsfaktor_grossfamilie
             )
-            self.austausch_warmwasser(energie_J=leistung_warmwasser_W * timestep_s)
+            self.austausch_warmwasser(
+                time_s=time_s, energie_J=leistung_warmwasser_W * timestep_s
+            )
 
         self.verlustleistung_W = (
             self._verlustleistung_W()
@@ -616,7 +629,9 @@ class Speicher_dezentral:
             leistung_W = (
                 leistung_W * self.verbrauchsfaktor_grossfamilie + self.verlustleistung_W
             )
-            self.austausch_heizung(energie_J=leistung_W * timestep_s)
+            self.austausch_heizung(time_s=time_s, energie_J=leistung_W * timestep_s)
+
+        self._purge()
 
     def update_input(self, fernleitung_hot: "Fernleitung"):
         self.in_wasser_C = fernleitung_hot.out_wasser_C

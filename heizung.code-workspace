@@ -51,7 +51,10 @@
 		// 	"black"
 		// ],
 		// "base", "forest", "dark", "default", "neutral"
-		"jupyter.widgetScriptSources": ["jsdelivr.com", "unpkg.com"],
+		"jupyter.widgetScriptSources": [
+			"jsdelivr.com",
+			"unpkg.com"
+		],
 		"markdown-mermaid.lightModeTheme": "base",
 		"markdown-mermaid.darkModeTheme": "dark",
 		"files.exclude": {
@@ -69,28 +72,65 @@
 			"version": "0.2.0",
 			"configurations": [
 				{
-					"name": "Python: Simulation",
+					"name": "Simulation All",
 					"type": "python",
 					"request": "launch",
-					"program": "util_simulation.py",
+					"program": "run_simulation.py",
 					"console": "integratedTerminal"
 				},
 				{
-					"name": "Python: Simulation All",
+					"name": "Simulation All ohne Notebooks",
 					"type": "python",
 					"request": "launch",
-					"program": "run_simulation_all.py",
+					"program": "run_simulation.py",
+					"args": [
+						"--notebooks=0"
+					],
 					"console": "integratedTerminal"
 				},
 				{
-					"name": "Python: Test Speicher Dezentral",
+					"name": "Simulation All ohne Notebooks 12h",
+					"type": "python",
+					"request": "launch",
+					"program": "run_simulation.py",
+					"args": [
+						"--notebooks=0",
+						"--duration_h=12"
+					],
+					"console": "integratedTerminal"
+				},
+				{
+					"name": "Simulation Wintertag ohne Notebooks",
+					"type": "python",
+					"request": "launch",
+					"program": "run_simulation.py",
+					"args": [
+						"wintertag",
+						"--notebooks=0"
+					],
+					"console": "integratedTerminal"
+				},
+				{
+					"name": "Simulation Wintertag ohne Notebooks 12h",
+					"type": "python",
+					"request": "launch",
+					"program": "run_simulation.py",
+					"args": [
+						"wintertag",
+						"--notebooks=0",
+						"--duration_h=12"
+					],
+					"console": "integratedTerminal"
+				},
+				{
+					"name": "Test Speicher Dezentral",
 					"type": "python",
 					"request": "launch",
 					"program": "test_speicher_dezentral.py",
 					"console": "integratedTerminal"
 				},
 				{
-					"name": "Python: Current File",
+					"name": "Current File",
 					"type": "python",
 					"request": "launch",
 					"program": "${file}",

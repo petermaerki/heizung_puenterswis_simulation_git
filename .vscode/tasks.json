@@ -4,19 +4,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "util_simulation.py",
+            "label": "run_simulation.py",
             "type": "shell",
-            "command": "${command:python.interpreterPath} util_simulation.py",
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [],
-            "group": "build"
-        },
-        {
-            "label": "run_simulation_all.py",
-            "type": "shell",
-            "command": "${command:python.interpreterPath} run_simulation_all.py",
+            "command": "${command:python.interpreterPath} run_simulation.py",
             "options": {
                 "cwd": "${workspaceFolder}"
             },

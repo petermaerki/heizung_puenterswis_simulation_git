@@ -21,6 +21,10 @@ class Stimuli:
     def do_plot(self, time_s) -> bool:
         return True
 
+    @property
+    def end_s(self) -> float:
+        return self.start_s + self.duration_s
+
 
 stimuli_wintertag = Stimuli(
     label="wintertag",
