@@ -17,6 +17,7 @@ class Speichers:
     def __init__(
         self,
         stimuli: "Stimuli",
+        modell: "Modell",
     ):
         self.in_fluss_m3_pro_s = 0.0
         self.out_fluss_m3_pro_s = 0.0
@@ -25,97 +26,112 @@ class Speichers:
             Speicher_dezentral
         ] = (  # Werte gemaess Revisionsplan 1. Etappe 2008-08-20
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=148.0,
                 label="haus01_normal",
                 description="Haus 1 Normal",
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=129.0,
                 label="haus02_ferien",
                 description="Haus 2 Ferien",
-                stimuli=stimuli,
                 verbrauchsfaktor_grossfamilie=0.01,  # Ferien
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=129.0,
                 label="haus03_grossfamilie",
                 description="Haus 3 Grossfamilie",
-                stimuli=stimuli,
                 verbrauchsfaktor_grossfamilie=1.4,  # Grossfamilie
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=178.0,
                 label="haus04",
                 description="Haus 4",
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=155.9,
                 label="haus05",
                 description="Haus 5",
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=155.9,
                 label="haus06",
                 description="Haus 6",
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=146.0,
                 label="haus07",
                 description="Haus 7",
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=152.0,
                 label="haus08",
                 description="Haus 8",
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=125.0,
                 label="haus09",
                 description="Haus 9",
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=144.8,
                 label="haus10",
                 description="Haus 10",
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=154.9,
                 label="haus11",
                 description="Haus 11",
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=169.7,
                 label="haus12",
                 description="Haus 12",
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=161.8,
                 label="haus13",
                 description="Haus 13",
                 totalvolumen_m3=0.97,  # Spezial Maerki Solarspeicher
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=141.7,
                 label="haus14",
                 description="Haus 14",
-                stimuli=stimuli,
             ),
             Speicher_dezentral(
+                stimuli=stimuli,
+                modell=modell,
                 fernwaermefluss_liter_pro_h=191.0,
                 label="haus15",
                 description="Haus 15",
-                stimuli=stimuli,
             ),
         )
 
@@ -142,9 +158,9 @@ class Speichers:
         self.out_fluss_m3_pro_s = self.in_fluss_m3_pro_s
 
     @property
-    def warmwasserladung_angefordert(self) -> bool:
+    def out_fernwaerme_angefordert(self) -> bool:
         for speicher in self.speichers:
-            if speicher.out_warmwasser_anforderung:
+            if speicher.out_fernwaerme_anforderung:
                 return True
         return False
 
@@ -173,7 +189,8 @@ class PlotSpeichersAnforderungen:
     def __init__(self, speichers: Speichers):
         self.speichers = speichers
         self.time_array_s = []
-        self.anforderungen_todo = []
+        self.anforderungen_warmwasser = []
+        self.anforderungen_heizung = []
 
     def append_plot(
         self,
@@ -182,25 +199,41 @@ class PlotSpeichersAnforderungen:
     ):
         self.time_array_s.append(time_s)
 
-        anforderungen = []
+        heizung = []
+        warmwasser = []
         for i, speicher in enumerate(self.speichers.speichers):
-            anforderungen.append(int(speicher.out_warmwasser_anforderung) - i * 2.0)
-        self.anforderungen_todo.append(anforderungen)
+            heizung.append(int(speicher._heizung_anforderung) - i * 2.0 - 0.15)
+            warmwasser.append(int(speicher._warmwasser_anforderung) - i * 2.0)
+        self.anforderungen_heizung.append(heizung)
+        self.anforderungen_warmwasser.append(warmwasser)
 
     def plot(self, directory: pathlib.Path):
         fig, ax = plt.subplots()
         # ax.plot(t, s)
         ax.plot(
             np.array(self.time_array_s) / 3600,
-            self.anforderungen_todo,
+            self.anforderungen_heizung,
             linestyle="solid",
             linewidth=1,
-            color="blue",
+            color="green",
             alpha=0.95,
-            # label=[s.label for s in self.speichers.speichers],
+            # label="Anforderung Heizung",
+        )
+        ax.plot(
+            np.array(self.time_array_s) / 3600,
+            self.anforderungen_warmwasser,
+            linestyle="solid",
+            linewidth=1,
+            color="red",
+            alpha=0.95,
+            # label="Anforderung Warmwasser",
         )
         ax.set_yticks([])
-        ax.set(xlabel="time (h)", ylabel="Anforderungen", title="Speichers")
+        ax.set(
+            xlabel="time (h)",
+            ylabel="Anforderungen",
+            title="Speichers, Warmwasser rot, Heizung grün",
+        )
         ax.legend()
         ax.grid()
         if directory is None:

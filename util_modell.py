@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class Modell:
     def __init__(self, stimuli: "Stimuli"):
         self.stimuli = stimuli
-        self.speichers = Speichers(stimuli=stimuli)
+        self.speichers = Speichers(stimuli=stimuli, modell=self)
         self.zentralheizung = Zentralheizung(stimuli=stimuli)
         self.fernleitung_cold = Fernleitung(stimuli=stimuli, label="cold")
         self.fernleitung_hot = Fernleitung(stimuli=stimuli, label="hot")

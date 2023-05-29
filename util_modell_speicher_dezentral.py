@@ -6,7 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from util_common import warning
-from util_konstanten import DICHTE_WASSER, WASSER_WAERMEKAP
+from util_konstanten import (
+    DICHTE_WASSER,
+    UMGEBUNGSTEMPERATUR_HEIZUNGS_START_C,
+    WASSER_WAERMEKAP,
+)
 from util_stimuli import Stimuli
 
 if TYPE_CHECKING:
@@ -63,7 +67,7 @@ class PlotSpeicher:
         self.energie_verfuegbar_heizung_kWh.append(
             self.speicher._waermeintegral_J(
                 temperaturgrenze_C=self.modell.zentralheizung.heizkurve_heizungswasser_C,
-                entnahmehoehe_anteil_von_unten=0.68,
+                entnahmehoehe_anteil_von_unten=self.speicher.anteil_auslass_von_unten,
             )
             / (3600 * 1000)
         )
@@ -155,7 +159,7 @@ class PlotEnergiereserve:
         self.energie_verfuegbar_heizung_kWh.append(
             self.speicher._waermeintegral_J(
                 temperaturgrenze_C=self.modell.zentralheizung.heizkurve_heizungswasser_C,
-                entnahmehoehe_anteil_von_unten=0.68,
+                entnahmehoehe_anteil_von_unten=self.speicher.anteil_auslass_von_unten,
             )
             / (3600 * 1000)
         )
@@ -263,14 +267,16 @@ class Speicher_dezentral:
     def __init__(
         self,
         stimuli: "Stimuli",
+        modell: "Modell",
         label: str = "dummy_speicher",
         description: str = "Dummy Speicher",
         fernwaermefluss_liter_pro_h=150.0,
-        startTempC=30.0,
+        startTempC=20.0,
         totalvolumen_m3=0.69,
         verbrauchsfaktor_grossfamilie=1.0,
     ):
         self.stimuli = stimuli
+        self.modell = modell
         self.label = label
         self.description = description
         self.startTempC = startTempC
@@ -312,9 +318,7 @@ class Speicher_dezentral:
         self.packet_liste.append([self.startTempC, self.totalvolumen_m3 - volumen_m3])
         self.packet_liste.sort(reverse=True)
 
-    def _waermeintegral_J(
-        self, temperaturgrenze_C=39, entnahmehoehe_anteil_von_unten=0.68
-    ):
+    def _waermeintegral_J(self, temperaturgrenze_C, entnahmehoehe_anteil_von_unten):
         # Ruckzuckloesung: Tank in Schritten zerlegen und jeden Schritt summieren
         schrittweite = 0.01  # je feiner je genauer, dafuer aufwaendiger
         volumenschritt_m3 = self.totalvolumen_m3 * schrittweite
@@ -357,10 +361,24 @@ class Speicher_dezentral:
         return total_m3
 
     @property
-    def out_warmwasser_anforderung(self) -> bool:
+    def out_fernwaerme_anforderung(self) -> bool:
+        return self._warmwasser_anforderung or self._heizung_anforderung
+
+    @property
+    def _warmwasser_anforderung(self) -> bool:
         tempC, volumen_m3 = self.packet_liste[0]
         reserve_C = 2.0  # etwas zu frueh Bedarf Melden
         return tempC < TEMPERATURGRENZE_BRAUCHWASSER_C + reserve_C
+
+    @property
+    def _heizung_anforderung(self) -> bool:
+        # TODO: Diese Funktion wird sehr auf aufgerufen: cashing!
+        if not self.heizung_ein():
+            return False
+        packet_idx = self._get_idx_heizung()
+        tempC, volumen_m3 = self.packet_liste[0]
+        reserve_C = 2.0  # etwas zu frueh Bedarf Melden
+        return tempC < self.modell.zentralheizung.heizkurve_heizungswasser_C + reserve_C
 
     def warnung_falls_volumenveraenderung(self) -> None:
         volumenabnahme_m3 = self.totalvolumen_m3 - self.berechnetes_volumen_total_m3
@@ -479,6 +497,17 @@ class Speicher_dezentral:
             # self.warnung_falls_volumenveraenderung()
             return
 
+    def _get_idx_heizung(self) -> int:
+        """
+        Gibt den index von dem Packet zurück, das vor dem Heizausgang liegt.
+        """
+        sum_volumen_m3 = 0.0
+        for idx, (tempC, packet_volumen_m3) in enumerate(self.packet_liste):
+            sum_volumen_m3 += packet_volumen_m3
+            if sum_volumen_m3 > self.volumen_auslass_von_oben_m3:
+                return idx
+        raise Exception("get_idx(). Speicher nicht voll")
+
     def austausch_heizung(self, energie_J: float, time_s=3720.0):
         """
         Das Wasser wird zuoberst abgenommen.
@@ -494,18 +523,7 @@ class Speicher_dezentral:
         summe_bezogene_energie_J = 0.0
         summe_bezogenes_volumen_m3 = 0.0
 
-        def get_idx() -> int:
-            """
-            Gibt den index von dem Packet zurück, das vor dem Heizausgang liegt.
-            """
-            sum_volumen_m3 = 0.0
-            for idx, (tempC, packet_volumen_m3) in enumerate(self.packet_liste):
-                sum_volumen_m3 += packet_volumen_m3
-                if sum_volumen_m3 > self.volumen_auslass_von_oben_m3:
-                    return idx
-            raise Exception("get_idx(). Speicher nicht voll")
-
-        packet_idx = get_idx()
+        packet_idx = self._get_idx_heizung()
         while True:
             if packet_idx >= len(self.packet_liste):
                 warning(
@@ -629,7 +647,7 @@ class Speicher_dezentral:
             self._verlustleistung_W()
         )  # den Verlust rechne ich später in den Heizungsbezug mit ein
 
-        if self.heizungnutzung and self.stimuli.umgebungstemperatur_C < 20.0:
+        if self.heizung_ein():
             kalt_C = -14.0
             warm_C = 20.0
             leistung_warm_W = 10.0  # empirisch und aufgrund von "ca 5000W pro Haus"
@@ -643,6 +661,13 @@ class Speicher_dezentral:
             self.austausch_heizung(time_s=time_s, energie_J=leistung_W * timestep_s)
 
         self._purge()
+
+    def heizung_ein(self) -> bool:
+        return (
+            self.heizungnutzung
+            and self.stimuli.umgebungstemperatur_C
+            < UMGEBUNGSTEMPERATUR_HEIZUNGS_START_C
+        )
 
     def update_input(self, fernleitung_hot: "Fernleitung"):
         self.in_wasser_C = fernleitung_hot.out_wasser_C

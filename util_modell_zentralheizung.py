@@ -137,22 +137,22 @@ class Zentralheizung:
         self.heizkurve_heizungswasser_C = 20.0
         self.fernwaermepumpe_on = True
         self.warmwasserladung_start_s = None
-        self.in_warmwasserladung_angefordert = False
+        self.in_fernwaerme_angefordert = False
 
     def _update_heizkurve(self):
         # self.heizen = (
         #     self.stimuli.umgebungstemperatur_C <= 20.0
         # )  # gemaess Heizkurve VC Engineering
-        self.heizkurve_heizungswasser_C = (
+        heizkurve_heizungswasser_C = (
             20.0 - self.stimuli.umgebungstemperatur_C
         ) * 10.0 / 28.0 + 25.0  # gemaess Heizkurve VC Engineering
         self.heizkurve_heizungswasser_C = min(
-            self.heizkurve_heizungswasser_C, 35.0
+            heizkurve_heizungswasser_C, 35.0
         )  # gemaess Heizkurve VC Engineering
 
     def update_input(self, speichers: "Speichers", fernleitung: "Fernleitung"):
         self._update_heizkurve()
-        self.in_warmwasserladung_angefordert = speichers.warmwasserladung_angefordert
+        self.in_fernwaerme_angefordert = speichers.out_fernwaerme_angefordert
         self.in_wasser_C = speichers.fernwaerme_cold_avg_C
         if not self.fernwaermepumpe_on:
             self.in_wasser_C = 20.0
@@ -186,7 +186,7 @@ class Zentralheizung:
         self.fernwaermepumpe_on = False
 
         if self.warmwasserladung_start_s is None:
-            if self.in_warmwasserladung_angefordert:
+            if self.in_fernwaerme_angefordert:
                 self.warmwasserladung_start_s = time_s
         else:
             duration_on_s = time_s - self.warmwasserladung_start_s
