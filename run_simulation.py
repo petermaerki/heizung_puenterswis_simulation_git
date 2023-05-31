@@ -30,7 +30,9 @@ def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
         PlotSpeichersAnforderungen(speichers=modell.speichers),
         PlotFernleitung(fernleitung=modell.fernleitung_hot),
         PlotFernleitung(fernleitung=modell.fernleitung_cold),
-        util_modell_zentralheizung.PlotFluss(zentralheizung=modell.zentralheizung),
+        util_modell_zentralheizung.PlotZeitpunktePerioden(
+            zentralheizung=modell.zentralheizung
+        ),
     ]
     for speicher in (
         modell.speichers.get_speicher("haus01_normal"),

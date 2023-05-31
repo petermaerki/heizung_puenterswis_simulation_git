@@ -54,11 +54,51 @@ class PlotFluss:
         plt.close()
 
 
+class PlotZeitpunktePerioden:
+    def __init__(self, zentralheizung: "Zentralheizung"):
+        self.time_array_s = []
+        self.zentralheizung = zentralheizung
+
+    def append_plot(
+        self,
+        timestep_s: float,
+        time_s: float,
+    ):
+        pass
+        # self.time_array_s.append(time_s)
+
+    def plot(self, directory: pathlib.Path):
+        fig, ax = plt.subplots()
+        ax.plot(
+            np.array(self.zentralheizung.heizzyklenzeitpunte_s[1::]) / 3600,
+            np.array(self.zentralheizung.heizzyklenperioden_s()[1::]) / 3600,
+            "-o",
+            # markevery="markers_on",
+            # linestyle="solid",
+            linewidth=2,
+            color="purple",
+            alpha=1.0,
+            # label="Fluss",
+        )
+        ax.set(
+            xlabel="time (h)",
+            ylabel="Periode (h)",
+            title="Heizzyklen Periodendauer",
+        )
+        ax.legend()
+        ax.grid()
+        if directory is None:
+            plt.show()
+            return
+        plt.savefig(directory / f"zentralheizung_periode.png")
+        plt.close()
+
+
 class PlotZentralheizung:
     def __init__(self, zentralheizung: "Zentralheizung"):
         self.zentralheizung = zentralheizung
         self.time_array_s = []
-        self.time_steps_s = []
+        # self.time_steps_s = []
         self.fernwaerme_hot_C = []
         self.fernwaerme_cold_avg_C = []
         self.fernwaerme_leistung_W = []
@@ -139,6 +179,16 @@ class Zentralheizung:
         self.warmwasserladung_start_s = None
         self.in_fernwaerme_angefordert = False
         self.heizzyklen_i = 0
+        self.heizzyklenzeitpunte_s = []
+
+    def heizzyklenperioden_s(self):
+        last_time_s = 0.0
+        perioden_array_s = []
+        for zeitpunkt_s in self.heizzyklenzeitpunte_s:
+            periode_s = zeitpunkt_s - last_time_s
+            last_time_s = zeitpunkt_s
+            perioden_array_s.append(periode_s)
+        return perioden_array_s
 
     def _update_heizkurve(self):
         # self.heizen = (
@@ -195,6 +245,7 @@ class Zentralheizung:
             if duration_on_s > warmwasser_plateau_zeit_s + warmwasser_rampe_rauf_s:
                 self.warmwasserladung_start_s = None
                 self.heizzyklen_i += 1
+                self.heizzyklenzeitpunte_s.append(time_s)
 
             def calculate_C():
                 rampe_start_C = 45.0
