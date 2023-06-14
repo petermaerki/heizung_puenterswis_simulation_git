@@ -24,9 +24,9 @@ def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
     simulation.plots = [
         PlotVerluste(modell=modell),
         util_modell_zentralheizung.PlotFluss(zentralheizung=modell.zentralheizung),
-        # util_modell_zentralheizung.PlotZentralheizung(
-        #     zentralheizung=modell.zentralheizung
-        # ),
+        util_modell_zentralheizung.PlotZentralheizung(
+            zentralheizung=modell.zentralheizung
+        ),
         PlotSpeichersAnforderungen(speichers=modell.speichers),
         PlotFernleitung(fernleitung=modell.fernleitung_hot),
         PlotFernleitung(fernleitung=modell.fernleitung_cold),

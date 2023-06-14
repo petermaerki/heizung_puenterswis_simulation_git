@@ -21,6 +21,7 @@ class Speichers:
     ):
         self.in_fluss_m3_pro_s = 0.0
         self.out_fluss_m3_pro_s = 0.0
+        self.flussfaktor = 1.0
 
         self.speichers: typing.List[
             Speicher_dezentral
@@ -28,14 +29,14 @@ class Speichers:
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=148.0,
+                fernwaermefluss_liter_pro_h=148.0 * self.flussfaktor,
                 label="haus01_normal",
                 description="Haus 1 Normal",
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=129.0,
+                fernwaermefluss_liter_pro_h=129.0 * self.flussfaktor,
                 label="haus02_ferien",
                 description="Haus 2 Ferien",
                 verbrauchsfaktor_grossfamilie=0.01,  # Ferien
@@ -43,7 +44,7 @@ class Speichers:
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=129.0,
+                fernwaermefluss_liter_pro_h=129.0 * self.flussfaktor,
                 label="haus03_grossfamilie",
                 description="Haus 3 Grossfamilie",
                 verbrauchsfaktor_grossfamilie=1.3,  # Grossfamilie
@@ -51,70 +52,70 @@ class Speichers:
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=178.0,
+                fernwaermefluss_liter_pro_h=178.0 * self.flussfaktor,
                 label="haus04",
                 description="Haus 4",
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=155.9,
+                fernwaermefluss_liter_pro_h=155.9 * self.flussfaktor,
                 label="haus05",
                 description="Haus 5",
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=155.9,
+                fernwaermefluss_liter_pro_h=155.9 * self.flussfaktor,
                 label="haus06",
                 description="Haus 6",
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=146.0,
+                fernwaermefluss_liter_pro_h=146.0 * self.flussfaktor,
                 label="haus07",
                 description="Haus 7",
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=152.0,
+                fernwaermefluss_liter_pro_h=152.0 * self.flussfaktor,
                 label="haus08",
                 description="Haus 8",
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=125.0,
+                fernwaermefluss_liter_pro_h=125.0 * self.flussfaktor,
                 label="haus09",
                 description="Haus 9",
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=144.8,
+                fernwaermefluss_liter_pro_h=144.8 * self.flussfaktor,
                 label="haus10",
                 description="Haus 10",
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=154.9,
+                fernwaermefluss_liter_pro_h=154.9 * self.flussfaktor,
                 label="haus11",
                 description="Haus 11",
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=169.7,
+                fernwaermefluss_liter_pro_h=169.7 * self.flussfaktor,
                 label="haus12",
                 description="Haus 12",
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=161.8,
+                fernwaermefluss_liter_pro_h=161.8 * self.flussfaktor,
                 label="haus13",
                 description="Haus 13",
                 totalvolumen_m3=0.97,  # Spezial Maerki Solarspeicher
@@ -122,14 +123,14 @@ class Speichers:
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=141.7,
+                fernwaermefluss_liter_pro_h=141.7 * self.flussfaktor,
                 label="haus14",
                 description="Haus 14",
             ),
             Speicher_dezentral(
                 stimuli=stimuli,
                 modell=modell,
-                fernwaermefluss_liter_pro_h=191.0,
+                fernwaermefluss_liter_pro_h=191.0 * self.flussfaktor,
                 label="haus15",
                 description="Haus 15",
             ),
