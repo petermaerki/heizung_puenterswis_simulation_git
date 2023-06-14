@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("simulation")
 
-TEMPERATURGRENZE_BRAUCHWASSER_C = 50.0
+TEMPERATURGRENZE_BRAUCHWASSER_C = 42.0
 """Diese Temperatur wird fuer Brauchwasser mindestens gebraucht"""
 
 
@@ -271,7 +271,7 @@ class Speicher_dezentral:
         label: str = "dummy_speicher",
         description: str = "Dummy Speicher",
         fernwaermefluss_liter_pro_h=150.0,
-        startTempC=20.0,
+        startTempC=45.0,
         totalvolumen_m3=0.69,
         verbrauchsfaktor_grossfamilie=1.0,
     ):
@@ -366,19 +366,32 @@ class Speicher_dezentral:
 
     @property
     def _warmwasser_anforderung(self) -> bool:
-        tempC, volumen_m3 = self.packet_liste[0]
-        reserve_C = 2.0  # etwas zu frueh Bedarf Melden
-        return tempC < TEMPERATURGRENZE_BRAUCHWASSER_C + reserve_C
+        # tempC, volumen_m3 = self.packet_liste[0]
+        # reserve_C = 2.0  # etwas zu frueh Bedarf Melden
+        # return tempC < TEMPERATURGRENZE_BRAUCHWASSER_C + reserve_C
+
+        # Neu Temperaturfühler auf 0.68 Hoehe vom Speicher
+        packet_idx = self._get_idx_heizung()
+        # if packet_idx >= len(self.packet_liste):
+        #     warning(
+        #         logger,
+        #         time_s,
+        #         f"{self.label}: Zu wenig Wärme.",
+        #     )
+        #     break
+        packet_tempC, packet_volumen_m3 = self.packet_liste[packet_idx]
+        return packet_tempC < TEMPERATURGRENZE_BRAUCHWASSER_C
 
     @property
     def _heizung_anforderung(self) -> bool:
         # TODO: Diese Funktion wird sehr oft aufgerufen: cashing!
-        if not self.heizung_ein():
-            return False
-        packet_idx = self._get_idx_heizung()
-        tempC, volumen_m3 = self.packet_liste[packet_idx]
-        reserve_C = 2.0  # etwas zu frueh Bedarf Melden
-        return tempC < self.modell.zentralheizung.heizkurve_heizungswasser_C + reserve_C
+        # if not self.heizung_ein():
+        #     return False
+        # packet_idx = self._get_idx_heizung()
+        # tempC, volumen_m3 = self.packet_liste[packet_idx]
+        # reserve_C = 2.0  # etwas zu frueh Bedarf Melden
+        # return tempC < self.modell.zentralheizung.heizkurve_heizungswasser_C + reserve_C
+        return False  # Nie anfordern
 
     def warnung_falls_volumenveraenderung(self) -> None:
         volumenabnahme_m3 = self.totalvolumen_m3 - self.berechnetes_volumen_total_m3

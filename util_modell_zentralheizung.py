@@ -233,7 +233,7 @@ class Zentralheizung:
 
     def _run(self, timestep_s: float, time_s: float, modell: "Modell"):
         warmwasser_rampe_rauf_s = 4.0 * 3600
-        warmwasser_plateau_zeit_s = 7.0 * 3600
+        warmwasser_plateau_zeit_s = 5.0 * 3600
         self.fernwaermepumpe_on = False
 
         if self.warmwasserladung_start_s is None:
@@ -289,6 +289,10 @@ class Zentralheizung:
                 modell.zentralheizung.heizkurve_heizungswasser_C
                 + temperaturhub_fuer_leistung_C
                 + erhoehung_reserve_C
+            )
+            temperatur_fernwaerme_minimal_heizbetrieb_C = 45
+            self.out_wasser_C = max(
+                self.out_wasser_C, temperatur_fernwaerme_minimal_heizbetrieb_C
             )
             return
         self.out_wasser_C = 0.0
