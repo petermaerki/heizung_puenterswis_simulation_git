@@ -22,6 +22,7 @@ logger = logging.getLogger("simulation")
 
 TEMPERATURGRENZE_BRAUCHWASSER_C = 42.0
 """Diese Temperatur wird fuer Brauchwasser mindestens gebraucht"""
+KALTWASSER_C = 15.0  # mit dieser Temperatur kommt das Wasser vom Wasserwerk
 
 
 class DumpSchichtung:
@@ -60,6 +61,7 @@ class PlotSpeicher:
         self.energie_verfuegbar_brauchwasser_kWh.append(
             self.speicher._waermeintegral_J(
                 temperaturgrenze_C=TEMPERATURGRENZE_BRAUCHWASSER_C,
+                rueckfluss_C=KALTWASSER_C,
                 entnahmehoehe_anteil_von_unten=1.0,
             )
             / (3600 * 1000)
@@ -67,6 +69,7 @@ class PlotSpeicher:
         self.energie_verfuegbar_heizung_kWh.append(
             self.speicher._waermeintegral_J(
                 temperaturgrenze_C=self.modell.zentralheizung.heizkurve_heizungswasser_C,
+                rueckfluss_C=self.speicher.ruecklauf_bodenheizung_C,
                 entnahmehoehe_anteil_von_unten=self.speicher.anteil_auslass_von_unten,
             )
             / (3600 * 1000)
@@ -155,6 +158,7 @@ class PlotEnergiereserve:
         self.energie_verfuegbar_brauchwasser_kWh.append(
             self.speicher._waermeintegral_J(
                 temperaturgrenze_C=TEMPERATURGRENZE_BRAUCHWASSER_C,
+                rueckfluss_C=KALTWASSER_C,
                 entnahmehoehe_anteil_von_unten=1.0,
             )
             / (3600 * 1000)
@@ -162,6 +166,7 @@ class PlotEnergiereserve:
         self.energie_verfuegbar_heizung_kWh.append(
             self.speicher._waermeintegral_J(
                 temperaturgrenze_C=self.modell.zentralheizung.heizkurve_heizungswasser_C,
+                rueckfluss_C=self.speicher.ruecklauf_bodenheizung_C,
                 entnahmehoehe_anteil_von_unten=self.speicher.anteil_auslass_von_unten,
             )
             / (3600 * 1000)
@@ -325,7 +330,11 @@ class Speicher_dezentral:
         self.packet_liste.append([self.startTempC, self.totalvolumen_m3 - volumen_m3])
         self.packet_liste.sort(reverse=True)
 
-    def _waermeintegral_J(self, temperaturgrenze_C, entnahmehoehe_anteil_von_unten):
+    def _waermeintegral_J(
+        self, temperaturgrenze_C, rueckfluss_C, entnahmehoehe_anteil_von_unten
+    ):
+        # temperaturgrenze_C: muss mindestens diese Temperatur haben
+        # rueckfluss_C: mit dieser Temperatur fliesst Wasser zurueck. Brauchwasser z.B. 15C
         # Ruckzuckloesung: Tank in Schritten zerlegen und jeden Schritt summieren
         schrittweite = 0.01  # je feiner je genauer, dafuer aufwaendiger
         volumenschritt_m3 = self.totalvolumen_m3 * schrittweite
@@ -335,13 +344,14 @@ class Speicher_dezentral:
         energie_J = 0.0
         while volumenposition_m3 > 0.0:
             temperatur_C = np.interp(volumenposition_m3, volumen_y, temperaturen_x)
-            energie_J += max(
-                (temperatur_C - temperaturgrenze_C)
-                * volumenschritt_m3
-                * WASSER_WAERMEKAP
-                * DICHTE_WASSER,
-                0.0,
-            )
+            if temperatur_C >= temperaturgrenze_C:
+                energie_J += max(
+                    (temperatur_C - rueckfluss_C)
+                    * volumenschritt_m3
+                    * WASSER_WAERMEKAP
+                    * DICHTE_WASSER,
+                    0.0,
+                )
             volumenposition_m3 -= volumenschritt_m3
             # print(f'volumenposition_m3 {volumenposition_m3:0.3f}, volumenschritt_m3 {volumenschritt_m3}, temperatur_C {temperatur_C:0.1f}, energie_J {energie_J:0.0f}')
         # print(f'Waemeintegral temperaturgrenze_C {temperaturgrenze_C} entnahmehoehe_anteil {entnahmehoehe_anteil_von_unten} energie_J {energie_J:0.3f}')
@@ -476,14 +486,13 @@ class Speicher_dezentral:
         """
         Das Wasser wird zuoberst abgenommen.
         """
-        kaltwasser_C = 15.0
         if energie_J < 1e-9:
-            return kaltwasser_C
+            return KALTWASSER_C
         verbleibende_energie_J = energie_J
         summe_bezogenes_volumen_m3 = 0.0
         while True:
             tempC, volumen_m3 = self.packet_liste[0]
-            temperaturhub_C = tempC - kaltwasser_C
+            temperaturhub_C = tempC - KALTWASSER_C
             packet_energie_J = (
                 volumen_m3 * temperaturhub_C * WASSER_WAERMEKAP * DICHTE_WASSER
             )
@@ -511,7 +520,7 @@ class Speicher_dezentral:
                 )
 
             if summe_bezogenes_volumen_m3 > 0.0:
-                self.packet_liste.insert(0, [kaltwasser_C, summe_bezogenes_volumen_m3])
+                self.packet_liste.insert(0, [KALTWASSER_C, summe_bezogenes_volumen_m3])
                 self.packet_liste.sort(reverse=True)
 
             # self.warnung_falls_volumenveraenderung()
