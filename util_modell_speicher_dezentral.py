@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 
-from util_common import warning
+from util_common import SAVEFIG_KWARGS, warning
 from util_konstanten import (
     DICHTE_WASSER,
     UMGEBUNGSTEMPERATUR_HEIZUNGS_START_C,
@@ -131,7 +131,10 @@ class PlotSpeicher:
         if directory is None:
             plt.show()
             return
-        plt.savefig(directory / f"speicher_temperaturverlauf_{self.speicher.label}.png")
+        plt.savefig(
+            directory / f"speicher_temperaturverlauf_{self.speicher.label}.png",
+            **SAVEFIG_KWARGS,
+        )
         plt.close()
 
 
@@ -194,7 +197,9 @@ class PlotEnergiereserve:
         if directory is None:
             plt.show()
             return
-        plt.savefig(directory / f"energiereserve_{self.speicher.label}.png")
+        plt.savefig(
+            directory / f"energiereserve_{self.speicher.label}.png", **SAVEFIG_KWARGS
+        )
         plt.close()
 
 
@@ -249,7 +254,9 @@ class PlotSpeicherSchichtung:
         if directory is None:
             plt.show()
             return
-        plt.savefig(directory / f"schichtung__{self.speicher.label}.png")
+        plt.savefig(
+            directory / f"schichtung__{self.speicher.label}.png", **SAVEFIG_KWARGS
+        )
         plt.close()
 
 

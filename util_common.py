@@ -8,6 +8,8 @@ DIRECTORY_REPORTS = DIRECTORY_TOP / "reports"
 DIRECTORY_RESULTS = DIRECTORY_TOP / "test_speicher_dezentral-results"
 DIRECTORY_RESULTS.mkdir(exist_ok=True)
 
+SAVEFIG_KWARGS = dict(metadata={})
+
 
 def warning(logger: logging.Logger, time_s: float, msg: str):
     """

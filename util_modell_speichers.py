@@ -4,6 +4,7 @@ import typing
 import numpy as np
 from matplotlib import pyplot as plt
 
+from util_common import SAVEFIG_KWARGS
 from util_modell_speicher_dezentral import Speicher_dezentral
 
 if typing.TYPE_CHECKING:
@@ -240,5 +241,5 @@ class PlotSpeichersAnforderungen:
         if directory is None:
             plt.show()
             return
-        plt.savefig(directory / "anforderungen.png")
+        plt.savefig(directory / "anforderungen.png", **SAVEFIG_KWARGS)
         plt.close()

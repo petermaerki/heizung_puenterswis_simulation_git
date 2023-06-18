@@ -4,6 +4,7 @@ import typing
 import matplotlib.pyplot as plt
 import numpy as np
 
+from util_common import SAVEFIG_KWARGS
 from util_konstanten import DICHTE_WASSER, WASSER_WAERMEKAP
 from util_modell_speichers import Speichers
 from util_stimuli import Stimuli
@@ -50,7 +51,7 @@ class PlotFluss:
         if directory is None:
             plt.show()
             return
-        plt.savefig(directory / f"zentralheizung_fluss.png")
+        plt.savefig(directory / f"zentralheizung_fluss.png", **SAVEFIG_KWARGS)
         plt.close()
 
 
@@ -90,7 +91,7 @@ class PlotZeitpunktePerioden:
         if directory is None:
             plt.show()
             return
-        plt.savefig(directory / f"zentralheizung_periode.png")
+        plt.savefig(directory / f"zentralheizung_periode.png", **SAVEFIG_KWARGS)
         plt.close()
 
 
@@ -154,7 +155,7 @@ class PlotZentralheizung:
         if directory is None:
             plt.show()
             return
-        plt.savefig(directory / "zentralheizung.png")
+        plt.savefig(directory / "zentralheizung.png", **SAVEFIG_KWARGS)
         plt.close()
 
 

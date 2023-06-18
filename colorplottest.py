@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from util_common import SAVEFIG_KWARGS
+
 """
 # Fixing random state for reproducibility
 np.random.seed(19680801)
@@ -37,7 +39,8 @@ plt.yticks([0, 1], ("unten", "oben"))
 
 plt.savefig(
     "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/energiereserve_"
-    + ".png"
+    + ".png",
+    **SAVEFIG_KWARGS
 )
 
 plt.show()

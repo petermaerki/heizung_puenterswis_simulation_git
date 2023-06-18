@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Callable, List
 import matplotlib.pyplot as plt
 import numpy as np
 
+from util_common import SAVEFIG_KWARGS
 from util_modell_fernleitung import Fernleitung
 from util_modell_speicher_dezentral import Speicher_dezentral
 from util_modell_speichers import Speichers
@@ -168,5 +169,5 @@ class PlotVerluste:
         if directory is None:
             plt.show()
             return
-        plt.savefig(directory / f"verluste.png")
+        plt.savefig(directory / f"verluste.png", **SAVEFIG_KWARGS)
         plt.close()

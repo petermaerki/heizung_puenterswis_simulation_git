@@ -4,6 +4,7 @@ import typing
 import matplotlib.pyplot as plt
 import numpy as np
 
+from util_common import SAVEFIG_KWARGS
 from util_konstanten import DICHTE_WASSER, WASSER_WAERMEKAP
 from util_modell_speichers import Speichers
 from util_modell_zentralheizung import Zentralheizung
@@ -88,12 +89,14 @@ class PlotFernleitung:
         # plt.savefig(
         #     "C:/data/peters_daten\haus_13_zelglistrasse_49/heizung/heizung_peter_schaer_siedlung/heizung_puenterswis_simulation_git/pictures/energiereserve_"
         #     + self.speicher.label
-        #     + ".png"
+        #     + ".png", **SAVEFIG_KWARGS
         # )
         if directory is None:
             plt.show()
             return
-        plt.savefig(directory / f"fernleitung_{self.fernleitung.label}.png")
+        plt.savefig(
+            directory / f"fernleitung_{self.fernleitung.label}.png", **SAVEFIG_KWARGS
+        )
         plt.close()
 
 
