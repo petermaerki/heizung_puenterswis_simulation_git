@@ -236,7 +236,7 @@ class PlotSpeichersAnforderungen:
             ylabel="Anforderungen",
             title="Speichers, Warmwasser rot, Heizung grün",
         )
-        ax.legend()
+        # ax.legend()
         ax.grid()
         if directory is None:
             plt.show()

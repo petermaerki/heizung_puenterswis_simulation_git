@@ -83,7 +83,7 @@ class PlotFernleitung:
         ax2.set(ylabel="Verlustleistung Fernleitung kW")
         # ax2.yaxis.set_major_formatter(mtick.FormatStrFormatter("%.2e"))
         ax2.ticklabel_format(useOffset=False)
-        ax2.legend()
+        # ax2.legend()
         ax.legend()
         ax.grid()
         # plt.savefig(

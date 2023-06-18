@@ -86,7 +86,7 @@ class PlotZeitpunktePerioden:
             ylabel="Periode (h)",
             title="Heizzyklen Periodendauer",
         )
-        ax.legend()
+        # ax.legend()
         ax.grid()
         if directory is None:
             plt.show()
