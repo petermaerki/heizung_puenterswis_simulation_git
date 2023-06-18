@@ -101,51 +101,28 @@
 					"console": "integratedTerminal"
 				},
 				{
-					"name": "Simulation All ohne Notebooks 12h (ww_ladung_75C_5.0h)",
-					"type": "python",
-					"request": "launch",
-					"program": "run_simulation.py",
-					"args": [
-						"--notebooks=0",
-						"--duration_h=12",
-						"--variante=ww_ladung_75C_5.0h"
-					],
-					"console": "integratedTerminal"
-				},
-				{
-					"name": "Simulation Wintertag ohne Notebooks (ww_ladung_75C_5.0h)",
+					"name": "Simulation Wintertag ohne Notebooks (ww_ladung_75C_5.0h, 30min)",
 					"type": "python",
 					"request": "launch",
 					"program": "run_simulation.py",
 					"args": [
 						"wintertag",
 						"--variante=ww_ladung_75C_5.0h",
+						"--timestep_min=30",
 						"--notebooks=0"
 					],
 					"console": "integratedTerminal"
 				},
 				{
-					"name": "Simulation Sommertag ohne Notebooks (ww_ladung_75C_5.0h)",
+					"name": "Simulation Sommertag ohne Notebooks (ww_ladung_75C_5.0h, 30min)",
 					"type": "python",
 					"request": "launch",
 					"program": "run_simulation.py",
 					"args": [
 						"sommertag",
 						"--variante=ww_ladung_75C_5.0h",
+						"--timestep_min=30",
 						"--notebooks=0"
-					],
-					"console": "integratedTerminal"
-				},
-				{
-					"name": "Simulation Wintertag ohne Notebooks 12h (ww_ladung_75C_5.0h)",
-					"type": "python",
-					"request": "launch",
-					"program": "run_simulation.py",
-					"args": [
-						"wintertag",
-						"--variante=ww_ladung_75C_5.0h",
-						"--notebooks=0",
-						"--duration_h=12"
 					],
 					"console": "integratedTerminal"
 				},

@@ -42,7 +42,7 @@ class Simulation:
             time_s += timestep_s
 
         logger.info(
-            f"Simulation {self.modell.stimuli.label}: run {time.monotonic()-begin_s:0.1f}s"
+            f"Simulation {self.modell.variante.label}/{self.modell.stimuli.label}: run {time.monotonic()-begin_s:0.1f}s"
         )
 
     def plot(self):
@@ -50,10 +50,10 @@ class Simulation:
 
         for plot in self.plots:
             logger.debug(
-                f"Simulation {self.modell.stimuli.label}: {plot.__class__.__name__}"
+                f"Simulation {self.modell.variante.label}/{self.modell.stimuli.label}: {plot.__class__.__name__}"
             )
             plot.plot(directory=self.modell.directory)
 
         logger.info(
-            f"Simulation {self.modell.stimuli.label}: plot {time.monotonic()-begin_s:0.1f}s"
+            f"Simulation {self.modell.variante.label}/{self.modell.stimuli.label}: plot {time.monotonic()-begin_s:0.1f}s"
         )

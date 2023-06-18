@@ -11,7 +11,8 @@ from util_modell_speicher_dezentral import Speicher_dezentral
 from util_modell_speichers import Speichers
 from util_modell_zentralheizung import Zentralheizung
 from util_stimuli import Stimuli
-from util_variante import Variante, VarianteResults
+from util_variante import Variante
+from util_varianten_report import VarianteResults
 
 
 class Modell:
@@ -142,7 +143,7 @@ class PlotVerluste:
             duration_a = (end_s - start_s) / YEAR_S
             warmwasser_zyklen = self.modell.stimuli.season_duration_a / (duration_a)
         else:
-            warmwasser_zyklen = 0
+            warmwasser_zyklen = 0.0
 
         results.write(label="warmwasser_zyklen", value=warmwasser_zyklen)
 

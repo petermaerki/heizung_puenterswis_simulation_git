@@ -18,6 +18,7 @@ from util_modell import PlotVerluste
 from util_modell_fernleitung import PlotFernleitung
 from util_modell_speichers import PlotSpeichersAnforderungen
 from util_simulation import Simulation
+from util_varianten_report import VarianteResults
 
 
 def plot_images(
@@ -113,7 +114,12 @@ def main(args: List[str]):
     parser.add_argument(
         "--variante", default=None, type=str, help="Name der zu rechnenen Variante"
     )
-    parser.add_argument("--duration_h", type=float, default=None)
+    parser.add_argument(
+        "--timestep_min",
+        type=float,
+        default=5.0,
+        help="Simulationsintervall (30min ist recht schnell)",
+    )
     parser.add_argument(
         "--reset",
         type=int,
@@ -147,14 +153,14 @@ def main(args: List[str]):
     for variante in varianten:
         for stimuli in stimulies:
             assert isinstance(stimuli, util_stimuli.Stimuli)
-            if args.duration_h:
+            if args.timestep_min:
                 stimuli = dataclasses.replace(
-                    stimuli, duration_s=3600.0 * args.duration_h
+                    stimuli, timestep_s=60.0 * args.timestep_min
                 )
 
             directory = stimuli.get_directory(variante=variante)
 
-            results = util_variante.VarianteResults(directory=directory)
+            results = VarianteResults(directory=directory)
             if results.exists():
                 continue
 

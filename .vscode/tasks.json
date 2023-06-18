@@ -14,6 +14,16 @@
             "group": "build"
         },
         {
+            "label": "run_simulation.py (alle Varianten, 30min, reset)",
+            "type": "shell",
+            "command": "${command:python.interpreterPath} run_simulation.py --notebooks=0 --timestep_min=30 --reset=1",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
             "label": "run_simulation.py (alle Varianten)",
             "type": "shell",
             "command": "${command:python.interpreterPath} run_simulation.py --notebooks=0",

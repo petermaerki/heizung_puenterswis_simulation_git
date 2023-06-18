@@ -38,8 +38,8 @@ stimuli_wintertag = Stimuli(
 )
 
 
-stimuli_fruelingstag = Stimuli(
-    label="fruelingstag",
+stimuli_fruehlingstag = Stimuli(
+    label="fruehlingstag",
     umgebungstemperatur_C=15.0,
     season_duration_a=1 / 2.0,
 )
@@ -50,7 +50,7 @@ stimuli_sommertag = Stimuli(
     umgebungstemperatur_C=25.0,
 )
 
-ALL: tuple[Stimuli] = (stimuli_wintertag, stimuli_fruelingstag, stimuli_sommertag)
+ALL: tuple[Stimuli] = (stimuli_wintertag, stimuli_fruehlingstag, stimuli_sommertag)
 
 season_durations_a = sum([stimuli.season_duration_a for stimuli in ALL])
 if not (1.0 - 1e-6 < season_durations_a < 1.0 + 1e-6):
