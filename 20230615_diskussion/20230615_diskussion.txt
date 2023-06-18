@@ -1,0 +1,12 @@
+Schichtspeicher ideal
+Temperatur Volumen rein, sortieren. Daher Position egal.
+Temperatur Volumen an bestimmter Stelle raus.
+
+Speicher
+
+
+
+
+
+
+
