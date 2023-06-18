@@ -260,7 +260,7 @@ class PlotSpeicherSchichtung:
             plt.show()
             return
         plt.savefig(
-            directory / f"schichtung__{self.speicher.label}.png", **SAVEFIG_KWARGS
+            directory / f"schichtung_{self.speicher.label}.png", **SAVEFIG_KWARGS
         )
         plt.close()
 

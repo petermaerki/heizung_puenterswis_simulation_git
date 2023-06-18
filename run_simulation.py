@@ -2,6 +2,7 @@ import argparse
 import dataclasses
 import os
 import pathlib
+import shutil
 import sys
 from typing import List
 
@@ -12,7 +13,7 @@ import util_modell_zentralheizung
 import util_stimuli
 import util_variante
 import util_varianten
-from util_common import DIRECTORY_TOP, remove_files
+from util_common import DIRECTORY_REPORTS, DIRECTORY_TOP, remove_files
 from util_modell import PlotVerluste
 from util_modell_fernleitung import PlotFernleitung
 from util_modell_speichers import PlotSpeichersAnforderungen
@@ -95,7 +96,7 @@ def plot_notebooks(
             cwd=DIRECTORY_TOP,
             parameters=dict(
                 stimuli_label=stimuli.label,
-                vairante_label=variante.label,
+                variante_label=variante.label,
             ),
             report_mode=True,
         )
@@ -114,6 +115,12 @@ def main(args: List[str]):
     )
     parser.add_argument("--duration_h", type=float, default=None)
     parser.add_argument(
+        "--reset",
+        type=int,
+        default=0,
+        help="Ordner 'results' loeschen",
+    )
+    parser.add_argument(
         "--notebooks",
         type=int,
         default=1,
@@ -127,24 +134,32 @@ def main(args: List[str]):
         stimulies = [util_stimuli.get_stimuli(args.stimuli)]
 
     if args.variante is None:
-        # Nur erste Variante rechnen
-        variante = util_varianten.VARIANTEN.varianten[0]
+        # Alle Varianten rechnen
+        varianten = util_varianten.VARIANTEN.varianten
     else:
         # Eine spezifische Variante rechnen
-        variante = util_varianten.VARIANTEN.get_by_label(label=args.variante)
+        varianten = [util_varianten.VARIANTEN.get_by_label(label=args.variante)]
 
-    for stimuli in stimulies:
-        assert isinstance(stimuli, util_stimuli.Stimuli)
-        if args.duration_h:
-            stimuli = dataclasses.replace(stimuli, duration_s=3600.0 * args.duration_h)
-        directory = stimuli.get_directory(variante=variante)
-        remove_files(directory)
-        directory.mkdir(parents=True, exist_ok=True)
-        os.chdir(directory)
+    if args.reset == 1:
+        if DIRECTORY_REPORTS.exists():
+            shutil.rmtree(DIRECTORY_REPORTS)
 
-        plot_images(stimuli=stimuli, variante=variante)
-        if args.notebooks == 1:
-            plot_notebooks(stimuli=stimuli, variante=variante, directory=directory)
+    for variante in varianten:
+        for stimuli in stimulies:
+            assert isinstance(stimuli, util_stimuli.Stimuli)
+            if args.duration_h:
+                stimuli = dataclasses.replace(
+                    stimuli, duration_s=3600.0 * args.duration_h
+                )
+
+            directory = stimuli.get_directory(variante=variante)
+            remove_files(directory)
+            directory.mkdir(parents=True, exist_ok=True)
+            os.chdir(directory)
+
+            plot_images(stimuli=stimuli, variante=variante)
+            if args.notebooks == 1:
+                plot_notebooks(stimuli=stimuli, variante=variante, directory=directory)
 
 
 if __name__ == "__main__":

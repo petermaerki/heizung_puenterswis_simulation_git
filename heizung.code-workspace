@@ -72,35 +72,48 @@
 			"version": "0.2.0",
 			"configurations": [
 				{
-					"name": "Simulation All",
-					"type": "python",
-					"request": "launch",
-					"program": "run_simulation.py",
-					"console": "integratedTerminal"
-				},
-				{
-					"name": "Simulation All ohne Notebooks",
-					"type": "python",
-					"request": "launch",
-					"program": "run_simulation.py",
-					"args": [
-						"--notebooks=0"
-					],
-					"console": "integratedTerminal"
-				},
-				{
-					"name": "Simulation All ohne Notebooks 12h",
+					"name": "Simulation All (ww_ladung_65C_1.1h)",
 					"type": "python",
 					"request": "launch",
 					"program": "run_simulation.py",
 					"args": [
 						"--notebooks=0",
-						"--duration_h=12"
+						"--variante=ww_ladung_65C_1.1h"
 					],
 					"console": "integratedTerminal"
 				},
 				{
-					"name": "Simulation Wintertag ohne Notebooks",
+					"name": "Simulation All (alle Varianten)",
+					"type": "python",
+					"request": "launch",
+					"program": "run_simulation.py",
+					"console": "integratedTerminal"
+				},
+				{
+					"name": "Simulation All ohne Notebooks (ww_ladung_65C_1.1h)",
+					"type": "python",
+					"request": "launch",
+					"program": "run_simulation.py",
+					"args": [
+						"--notebooks=0",
+						"--variante=ww_ladung_65C_1.1h"
+					],
+					"console": "integratedTerminal"
+				},
+				{
+					"name": "Simulation All ohne Notebooks 12h (ww_ladung_65C_1.1h)",
+					"type": "python",
+					"request": "launch",
+					"program": "run_simulation.py",
+					"args": [
+						"--notebooks=0",
+						"--duration_h=12",
+						"--variante=ww_ladung_65C_1.1h"
+					],
+					"console": "integratedTerminal"
+				},
+				{
+					"name": "Simulation Wintertag ohne Notebooks (ww_ladung_65C_1.1h)",
 					"type": "python",
 					"request": "launch",
 					"program": "run_simulation.py",
@@ -112,12 +125,13 @@
 					"console": "integratedTerminal"
 				},
 				{
-					"name": "Simulation Wintertag ohne Notebooks 12h",
+					"name": "Simulation Wintertag ohne Notebooks 12h (ww_ladung_65C_1.1h)",
 					"type": "python",
 					"request": "launch",
 					"program": "run_simulation.py",
 					"args": [
 						"wintertag",
+						"--variante=ww_ladung_65C_1.1h",
 						"--notebooks=0",
 						"--duration_h=12"
 					],

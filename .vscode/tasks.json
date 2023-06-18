@@ -4,9 +4,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "run_simulation.py",
+            "label": "run_simulation.py (alle Varianten, reset)",
             "type": "shell",
-            "command": "${command:python.interpreterPath} run_simulation.py",
+            "command": "${command:python.interpreterPath} run_simulation.py --notebooks=0 --reset=1",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -14,9 +14,19 @@
             "group": "build"
         },
         {
-            "label": "run_varianten.py",
+            "label": "run_simulation.py (alle Varianten)",
             "type": "shell",
-            "command": "${command:python.interpreterPath} run_varianten.py",
+            "command": "${command:python.interpreterPath} run_simulation.py --notebooks=0",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
+            "label": "run_simulation.py (ww_ladung_65C_1.1h)",
+            "type": "shell",
+            "command": "${command:python.interpreterPath} run_simulation.py --notebooks=0 --variante=ww_ladung_65C_1.1h",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
