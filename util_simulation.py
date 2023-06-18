@@ -3,16 +3,9 @@ import pathlib
 import time
 
 from util_common import init_logging, remove_files
-from util_modell import Modell, PlotVerluste
-from util_modell_fernleitung import PlotFernleitung
-from util_modell_speicher_dezentral import (
-    DumpSchichtung,
-    PlotEnergiereserve,
-    PlotSpeicherSchichtung,
-)
-from util_modell_speichers import PlotSpeichersAnforderungen
-from util_modell_zentralheizung import PlotFluss
-from util_stimuli import Stimuli, stimuli_sommertag, stimuli_wintertag
+from util_modell import Modell
+from util_stimuli import Stimuli
+from util_variante import Variante
 
 logger = logging.getLogger("simulation")
 
@@ -20,15 +13,15 @@ DIRECTORY_TOP = pathlib.Path(__file__).resolve().parent
 
 
 class Simulation:
-    def __init__(self, stimuli: "Stimuli", directory: pathlib.Path = None):
+    def __init__(self, stimuli: Stimuli, variante=Variante):
+        directory = stimuli.get_directory(variante=variante)
         if directory is not None:
             directory.mkdir(parents=True, exist_ok=True)
             remove_files(directory=directory)
         init_logging(directory=directory)
 
-        self.directory = directory
         self.plots = []
-        self.modell = Modell(stimuli)
+        self.modell = Modell(stimuli=stimuli, variante=variante)
 
     def run(self):
         begin_s = time.monotonic()
@@ -59,7 +52,7 @@ class Simulation:
             logger.debug(
                 f"Simulation {self.modell.stimuli.label}: {plot.__class__.__name__}"
             )
-            plot.plot(directory=self.directory)
+            plot.plot(directory=self.modell.directory)
 
         logger.info(
             f"Simulation {self.modell.stimuli.label}: plot {time.monotonic()-begin_s:0.1f}s"

@@ -10,15 +10,20 @@ import papermill
 import util_modell_speicher_dezentral
 import util_modell_zentralheizung
 import util_stimuli
-from util_common import DIRECTORY_REPORTS, DIRECTORY_TOP, remove_files
+import util_variante
+import util_varianten
+from util_common import DIRECTORY_TOP, remove_files
 from util_modell import PlotVerluste
 from util_modell_fernleitung import PlotFernleitung
 from util_modell_speichers import PlotSpeichersAnforderungen
 from util_simulation import Simulation
 
 
-def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
-    simulation = Simulation(stimuli=stimuli, directory=directory)
+def plot_images(
+    stimuli: util_stimuli.Stimuli,
+    variante: util_variante.Variante,
+):
+    simulation = Simulation(stimuli=stimuli, variante=variante)
     modell = simulation.modell
 
     simulation.plots = [
@@ -76,7 +81,11 @@ def plot_images(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
     simulation.plot()
 
 
-def plot_notebooks(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
+def plot_notebooks(
+    stimuli: util_stimuli.Stimuli,
+    variante: util_variante.Variante,
+    directory: pathlib.Path,
+):
     # https://papermill.readthedocs.io/en/latest/
 
     for notebook in DIRECTORY_TOP.glob("report_*.ipynb"):
@@ -86,6 +95,7 @@ def plot_notebooks(stimuli: util_stimuli.Stimuli, directory: pathlib.Path):
             cwd=DIRECTORY_TOP,
             parameters=dict(
                 stimuli_label=stimuli.label,
+                vairante_label=variante.label,
             ),
             report_mode=True,
         )
@@ -98,6 +108,9 @@ def main(args: List[str]):
         default=None,
         choices=[st.label for st in util_stimuli.ALL],
         nargs="?",
+    )
+    parser.add_argument(
+        "--variante", default=None, type=str, help="Name der zu rechnenen Variante"
     )
     parser.add_argument("--duration_h", type=float, default=None)
     parser.add_argument(
@@ -113,18 +126,25 @@ def main(args: List[str]):
     else:
         stimulies = [util_stimuli.get_stimuli(args.stimuli)]
 
+    if args.variante is None:
+        # Nur erste Variante rechnen
+        variante = util_varianten.VARIANTEN.varianten[0]
+    else:
+        # Eine spezifische Variante rechnen
+        variante = util_varianten.VARIANTEN.get_by_label(label=args.variante)
+
     for stimuli in stimulies:
         assert isinstance(stimuli, util_stimuli.Stimuli)
         if args.duration_h:
             stimuli = dataclasses.replace(stimuli, duration_s=3600.0 * args.duration_h)
-        directory = DIRECTORY_REPORTS / stimuli.label
+        directory = stimuli.get_directory(variante=variante)
         remove_files(directory)
         directory.mkdir(parents=True, exist_ok=True)
         os.chdir(directory)
 
-        plot_images(stimuli=stimuli, directory=directory)
+        plot_images(stimuli=stimuli, variante=variante)
         if args.notebooks == 1:
-            plot_notebooks(stimuli=stimuli, directory=directory)
+            plot_notebooks(stimuli=stimuli, variante=variante, directory=directory)
 
 
 if __name__ == "__main__":

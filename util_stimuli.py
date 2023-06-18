@@ -1,5 +1,8 @@
-import logging
+import pathlib
 from dataclasses import dataclass
+
+from util_common import DIRECTORY_REPORTS
+from util_variante import Variante
 
 DAY_S = 24 * 3600.0
 
@@ -25,6 +28,9 @@ class Stimuli:
     @property
     def end_s(self) -> float:
         return self.start_s + self.duration_s
+
+    def get_directory(self, variante: Variante) -> pathlib.Path:
+        return DIRECTORY_REPORTS / variante.label / self.label
 
 
 stimuli_wintertag = Stimuli(

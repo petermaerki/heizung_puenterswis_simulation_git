@@ -4,24 +4,29 @@ from typing import TYPE_CHECKING, Any, Callable, List
 import matplotlib.pyplot as plt
 import numpy as np
 
-from util_common import SAVEFIG_KWARGS
+from util_common import DIRECTORY_REPORTS, SAVEFIG_KWARGS
 from util_modell_fernleitung import Fernleitung
 from util_modell_speicher_dezentral import Speicher_dezentral
 from util_modell_speichers import Speichers
 from util_modell_zentralheizung import Zentralheizung
 from util_stimuli import Stimuli
-
-if TYPE_CHECKING:
-    from util_simulation import Stimulus
+from util_variante import Variante
 
 
 class Modell:
-    def __init__(self, stimuli: "Stimuli"):
+    def __init__(self, stimuli: Stimuli, variante: Variante):
+        assert isinstance(stimuli, Stimuli)
+        assert isinstance(variante, Variante)
         self.stimuli = stimuli
+        self.variante = variante
         self.speichers = Speichers(stimuli=stimuli, modell=self)
         self.zentralheizung = Zentralheizung(stimuli=stimuli)
         self.fernleitung_cold = Fernleitung(stimuli=stimuli, label="cold")
         self.fernleitung_hot = Fernleitung(stimuli=stimuli, label="hot")
+
+    @property
+    def directory(self) -> pathlib.Path:
+        return self.stimuli.get_directory(variante=self.variante)
 
     def run(self, timestep_s: float, time_s: float):
         self.zentralheizung.update_input(

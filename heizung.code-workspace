@@ -106,6 +106,7 @@
 					"program": "run_simulation.py",
 					"args": [
 						"wintertag",
+						"--variante=ww_ladung_65C_1.1h",
 						"--notebooks=0"
 					],
 					"console": "integratedTerminal"
