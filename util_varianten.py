@@ -29,8 +29,8 @@ class Varianten:
 
 VARIANTEN = Varianten(
     [
-        Variante(warmwasser_plateau_s=4000, fernleitung_hot_max_C=65),
-        Variante(warmwasser_plateau_s=4000, fernleitung_hot_max_C=70),
-        Variante(warmwasser_plateau_s=4000, fernleitung_hot_max_C=75),
+        Variante(warmwasser_plateau_s=5.0 * 3600, fernleitung_hot_max_C=65.0),
+        Variante(warmwasser_plateau_s=5.0 * 3600, fernleitung_hot_max_C=70.0),
+        Variante(warmwasser_plateau_s=5.0 * 3600, fernleitung_hot_max_C=75.0),
     ]
 )

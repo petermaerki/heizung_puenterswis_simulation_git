@@ -179,8 +179,11 @@ class Zentralheizung:
         self.fernwaermepumpe_on = True
         self.warmwasserladung_start_s = None
         self.in_fernwaerme_angefordert = False
-        self.heizzyklen_i = 0
         self.heizzyklenzeitpunte_s = []
+
+    @property
+    def heizzyklen_i(self) -> int:
+        return len(self.heizzyklenzeitpunte_s)
 
     def heizzyklenperioden_s(self):
         last_time_s = 0.0
@@ -234,7 +237,6 @@ class Zentralheizung:
 
     def _run(self, timestep_s: float, time_s: float, modell: "Modell"):
         warmwasser_rampe_rauf_s = 4.0 * 3600
-        warmwasser_plateau_zeit_s = 5.0 * 3600
         self.fernwaermepumpe_on = False
 
         if self.warmwasserladung_start_s is None:
@@ -243,19 +245,21 @@ class Zentralheizung:
         else:
             duration_on_s = time_s - self.warmwasserladung_start_s
             assert duration_on_s >= 0.0
-            if duration_on_s > warmwasser_plateau_zeit_s + warmwasser_rampe_rauf_s:
+            if (
+                duration_on_s
+                > modell.variante.warmwasser_plateau_s + warmwasser_rampe_rauf_s
+            ):
                 self.warmwasserladung_start_s = None
-                self.heizzyklen_i += 1
                 self.heizzyklenzeitpunte_s.append(time_s)
 
             def calculate_C():
                 rampe_start_C = 45.0
-                fernwarme_max_C = 75.0
+                fernleitung_hot_max_C = modell.variante.fernleitung_hot_max_C
                 if duration_on_s > warmwasser_rampe_rauf_s:
-                    return fernwarme_max_C
+                    return fernleitung_hot_max_C
                 return (
                     rampe_start_C
-                    + (fernwarme_max_C - rampe_start_C)
+                    + (fernleitung_hot_max_C - rampe_start_C)
                     * duration_on_s
                     / warmwasser_rampe_rauf_s
                 )

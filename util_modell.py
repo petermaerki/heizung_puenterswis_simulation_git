@@ -4,13 +4,14 @@ from typing import TYPE_CHECKING, Any, Callable, List
 import matplotlib.pyplot as plt
 import numpy as np
 
-from util_common import DIRECTORY_REPORTS, SAVEFIG_KWARGS
+from util_common import SAVEFIG_KWARGS
+from util_konstanten import YEAR_S
 from util_modell_fernleitung import Fernleitung
 from util_modell_speicher_dezentral import Speicher_dezentral
 from util_modell_speichers import Speichers
 from util_modell_zentralheizung import Zentralheizung
 from util_stimuli import Stimuli
-from util_variante import Variante
+from util_variante import Variante, VarianteResults
 
 
 class Modell:
@@ -125,7 +126,39 @@ class PlotVerluste:
         self.fernleitung_kWh.append_plot(timestep_s=timestep_s)
         self.speichers_kWh.append_plot(timestep_s=timestep_s)
 
+    def variante_results(self, directory: pathlib.Path):
+        """Berechnet die Zwischenresultate für die Variante"""
+        results = VarianteResults(directory=directory)
+        results.write(
+            label="season_duration_a", value=self.modell.stimuli.season_duration_a
+        )
+
+        zentralheizung = self.modell.zentralheizung
+        start_s = 0.0
+        end_s = self.time_array_s[-1]
+        if len(zentralheizung.heizzyklenzeitpunte_s) > 2:
+            start_s = zentralheizung.heizzyklenzeitpunte_s[1]
+            end_s = zentralheizung.heizzyklenzeitpunte_s[2]
+            duration_a = (end_s - start_s) / YEAR_S
+            warmwasser_zyklen = self.modell.stimuli.season_duration_a / (duration_a)
+        else:
+            warmwasser_zyklen = 0
+
+        results.write(label="warmwasser_zyklen", value=warmwasser_zyklen)
+
+        def calc_summe_kWh(time_s: float) -> float:
+            for i, _time_s in enumerate(self.time_array_s):
+                if _time_s >= time_s:
+                    return self.speichers_kWh.summe[i] + self.fernleitung_kWh.summe[i]
+            assert False
+
+        summe_kWh = calc_summe_kWh(time_s=end_s) - calc_summe_kWh(time_s=start_s)
+        verlustleistung_kW = summe_kWh / ((end_s - start_s) / 3600.0)
+        results.write(label="verlustleistung_kW", value=verlustleistung_kW)
+
     def plot(self, directory: pathlib.Path):
+        self.variante_results(directory=directory)
+
         fig, ax = plt.subplots()
         ax.plot(
             np.array(self.time_array_s) / 3600,

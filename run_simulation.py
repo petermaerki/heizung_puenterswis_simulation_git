@@ -153,6 +153,11 @@ def main(args: List[str]):
                 )
 
             directory = stimuli.get_directory(variante=variante)
+
+            results = util_variante.VarianteResults(directory=directory)
+            if results.exists():
+                continue
+
             remove_files(directory)
             directory.mkdir(parents=True, exist_ok=True)
             os.chdir(directory)

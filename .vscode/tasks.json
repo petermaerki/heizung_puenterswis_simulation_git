@@ -24,9 +24,9 @@
             "group": "build"
         },
         {
-            "label": "run_simulation.py (ww_ladung_65C_1.1h)",
+            "label": "run_simulation.py (ww_ladung_75C_5.0h)",
             "type": "shell",
-            "command": "${command:python.interpreterPath} run_simulation.py --notebooks=0 --variante=ww_ladung_65C_1.1h",
+            "command": "${command:python.interpreterPath} run_simulation.py --notebooks=0 --variante=ww_ladung_75C_5.0h",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
