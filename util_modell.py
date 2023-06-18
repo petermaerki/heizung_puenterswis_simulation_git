@@ -1,11 +1,11 @@
 import pathlib
-from typing import TYPE_CHECKING, Any, Callable, List
+from typing import Any, Callable, List
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from util_common import SAVEFIG_KWARGS
-from util_konstanten import YEAR_S
+from util_konstanten import YEAR_H, YEAR_S
 from util_modell_fernleitung import Fernleitung
 from util_modell_speicher_dezentral import Speicher_dezentral
 from util_modell_speichers import Speichers
@@ -145,6 +145,10 @@ class PlotVerluste:
         else:
             warmwasser_zyklen = 0.0
 
+        results.write(
+            label=f"warmwasser_zyklen-{self.modell.stimuli.label}",
+            value=warmwasser_zyklen,
+        )
         results.write(label="warmwasser_zyklen", value=warmwasser_zyklen)
 
         def calc_summe_kWh(time_s: float) -> float:
@@ -155,7 +159,15 @@ class PlotVerluste:
 
         summe_kWh = calc_summe_kWh(time_s=end_s) - calc_summe_kWh(time_s=start_s)
         verlustleistung_kW = summe_kWh / ((end_s - start_s) / 3600.0)
-        results.write(label="verlustleistung_kW", value=verlustleistung_kW)
+        results.write(
+            label=f"verlustleistung_kW-{self.modell.stimuli.label}",
+            value=verlustleistung_kW,
+        )
+
+        verlust_kWh = (
+            verlustleistung_kW * self.modell.stimuli.season_duration_a * YEAR_H
+        )
+        results.write(label="verlust_kWh", value=verlust_kWh)
 
     def plot(self, directory: pathlib.Path):
         self.variante_results(directory=directory)

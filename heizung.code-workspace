@@ -72,21 +72,20 @@
 			"version": "0.2.0",
 			"configurations": [
 				{
-					"name": "Simulation All (ww_ladung_75C_5.0h)",
+					"name": "Simulation All (alle Varianten)",
+					"type": "python",
+					"request": "launch",
+					"program": "run_simulation.py",
+					"console": "integratedTerminal"
+				},
+				{
+					"name": "Simulation All ohne Notebooks (alle Varianten)",
 					"type": "python",
 					"request": "launch",
 					"program": "run_simulation.py",
 					"args": [
 						"--notebooks=0",
-						"--variante=ww_ladung_75C_5.0h"
 					],
-					"console": "integratedTerminal"
-				},
-				{
-					"name": "Simulation All (alle Varianten)",
-					"type": "python",
-					"request": "launch",
-					"program": "run_simulation.py",
 					"console": "integratedTerminal"
 				},
 				{

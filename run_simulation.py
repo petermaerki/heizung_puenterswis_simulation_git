@@ -18,7 +18,7 @@ from util_modell import PlotVerluste
 from util_modell_fernleitung import PlotFernleitung
 from util_modell_speichers import PlotSpeichersAnforderungen
 from util_simulation import Simulation
-from util_varianten_report import VarianteResults
+from util_varianten_report import VariantenResults, VarianteResults
 
 
 def plot_images(
@@ -150,6 +150,8 @@ def main(args: List[str]):
         if DIRECTORY_REPORTS.exists():
             shutil.rmtree(DIRECTORY_REPORTS)
 
+    varianten_results = VariantenResults(DIRECTORY_REPORTS)
+    varianten_results.delete()
     for variante in varianten:
         for stimuli in stimulies:
             assert isinstance(stimuli, util_stimuli.Stimuli)
@@ -161,16 +163,20 @@ def main(args: List[str]):
             directory = stimuli.get_directory(variante=variante)
 
             results = VarianteResults(directory=directory)
-            if results.exists():
-                continue
+            if not results.exists():
+                remove_files(directory)
+                directory.mkdir(parents=True, exist_ok=True)
+                os.chdir(directory)
 
-            remove_files(directory)
-            directory.mkdir(parents=True, exist_ok=True)
-            os.chdir(directory)
+                plot_images(stimuli=stimuli, variante=variante)
+                if args.notebooks == 1:
+                    plot_notebooks(
+                        stimuli=stimuli, variante=variante, directory=directory
+                    )
 
-            plot_images(stimuli=stimuli, variante=variante)
-            if args.notebooks == 1:
-                plot_notebooks(stimuli=stimuli, variante=variante, directory=directory)
+            varianten_results.append(stimuli=stimuli, variante=variante)
+
+    varianten_results.write()
 
 
 if __name__ == "__main__":

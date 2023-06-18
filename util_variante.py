@@ -14,15 +14,6 @@ class Variante:
     def label(self) -> str:
         return f"ww_ladung_{self.fernleitung_hot_max_C:0.0f}C_{self.warmwasser_plateau_h:0.1f}h"
 
-    @property
-    def tab_delimited(self) -> str:
-        return "\t".join(
-            [
-                format(self.fernleitung_hot_max_C, "0.0f"),
-                format(self.warmwasser_plateau_h, "0.1f"),
-            ]
-        )
-
     @staticmethod
     def tab_delimited_header() -> str:
         return "\t".join(
