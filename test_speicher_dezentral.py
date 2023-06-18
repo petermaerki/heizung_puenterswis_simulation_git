@@ -7,6 +7,7 @@ def test_a():
     stimuli = stimuli_wintertag
     speicher = Speicher_dezentral(
         stimuli=stimuli,
+        modell=None,
         startTempC=60.0,
     )
 
@@ -42,7 +43,7 @@ def test_a():
 
 def test_b():
     stimuli = stimuli_wintertag
-    speicher = Speicher_dezentral(stimuli=stimuli, startTempC=60.0)
+    speicher = Speicher_dezentral(stimuli=stimuli, modell=None, startTempC=60.0)
     speicher.reset(packets=((90.0, 0.1),))
     label = "test_b"
     speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
@@ -52,7 +53,7 @@ def test_b():
 
 def test_c():
     stimuli = stimuli_wintertag
-    speicher = Speicher_dezentral(stimuli=stimuli, startTempC=60.0)
+    speicher = Speicher_dezentral(stimuli=stimuli, modell=None, startTempC=60.0)
     speicher.reset(packets=((90.0, 0.001),))
     label = "test_c"
     speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
@@ -62,7 +63,7 @@ def test_c():
 
 def test_c1():
     stimuli = stimuli_wintertag
-    speicher = Speicher_dezentral(stimuli=stimuli, startTempC=30.0)
+    speicher = Speicher_dezentral(stimuli=stimuli, modell=None, startTempC=30.0)
     speicher.reset(packets=((90.0, 0.001),))
     label = "test_c1"
     speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
@@ -72,7 +73,7 @@ def test_c1():
 
 def test_d():
     stimuli = stimuli_wintertag
-    speicher = Speicher_dezentral(stimuli=stimuli, startTempC=60.0)
+    speicher = Speicher_dezentral(stimuli=stimuli, modell=None, startTempC=60.0)
     speicher.reset(packets=([90.0, 0.001],))
     label = "test_d"
     speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
@@ -85,7 +86,7 @@ def test_d():
 
 def test_e():
     stimuli = stimuli_wintertag
-    speicher = Speicher_dezentral(stimuli=stimuli, startTempC=60.0)
+    speicher = Speicher_dezentral(stimuli=stimuli, modell=None, startTempC=60.0)
     speicher.reset(packets=([40.0, speicher.volumen_auslass_von_unten_m3 - 0.001],))
     label = "test_e"
     speicher.dump(filename=DIRECTORY_RESULTS / f"{label}-vorher.txt")
@@ -106,7 +107,7 @@ def test_f():
     # ruecklauf_bodenheizung_C = 24.0
     temp_knapp_ueber_ruecklauf_C = 24.0001
     speicher = Speicher_dezentral(
-        stimuli=stimuli, startTempC=temp_knapp_ueber_ruecklauf_C
+        stimuli=stimuli, modell=None, startTempC=temp_knapp_ueber_ruecklauf_C
     )
     speicher.reset(packets=((temp_knapp_ueber_ruecklauf_C - 1e-12, 0.1),))
     label = "test_f"
