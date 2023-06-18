@@ -1,0 +1,4 @@
+variante	fernleitung_hot_max_C	warmwasser_plateau_s	season_duration_a	verlust_kWh	verlustleistung_kW-fruehlingstag	verlustleistung_kW-sommertag	verlustleistung_kW-wintertag	warmwasser_zyklen	warmwasser_zyklen-fruehlingstag	warmwasser_zyklen-sommertag	warmwasser_zyklen-wintertag
+ww_ladung_65C_5.0h	65	18000	1.000000000	22277.775544705	2.576604551	1.247738014	3.771553133	24.288354898	0.000000000	24.288354898	0.000000000
+ww_ladung_70C_5.0h	70	18000	1.000000000	22465.849921873	2.576604551	1.333616725	3.771553133	22.290076336	0.000000000	22.290076336	0.000000000
+ww_ladung_75C_5.0h	75	18000	1.000000000	22651.294444555	2.576604551	1.418294590	3.771553133	20.595611285	0.000000000	20.595611285	0.000000000

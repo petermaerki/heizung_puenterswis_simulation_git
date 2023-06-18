@@ -1,0 +1,3 @@
+season_duration_a=0.25
+warmwasser_zyklen=20.595611285266457
+verlustleistung_kW=1.418294589546947

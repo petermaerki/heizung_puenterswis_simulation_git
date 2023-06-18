@@ -1,0 +1,8 @@
+Gesamtenergie 199735202.6 J
+Gesamtvolumen 0.690000 m^3
+
+Schichtung
+Temperatur C Volumen m^3
+69.1 0.689663
+15.0 0.000337
+
